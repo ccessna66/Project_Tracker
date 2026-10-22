@@ -1,0 +1,2686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#223142">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Traveler — Project Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #edf0f2;
+    --paper-line: #c7d0d6;
+    --card: #fffefb;
+    --ink: #223142;
+    --ink-dim: #5b6b7a;
+    --copper: #bf6a35;
+    --copper-dim: #e0b391;
+    --solder: #4c7a63;
+    --amber: #c99a3a;
+    --danger: #a4463a;
+    --shadow: 0 1px 2px rgba(34,49,66,0.06), 0 4px 14px rgba(34,49,66,0.06);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background:
+      linear-gradient(var(--paper-line) 1px, transparent 1px) 0 0/100% 28px,
+      linear-gradient(90deg, var(--paper-line) 1px, transparent 1px) 0 0/28px 100%,
+      var(--paper);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    padding: 36px 28px 80px;
+  }
+
+  .wrap { max-width: 1400px; margin: 0 auto; }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .title-block h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .title-block .sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--ink-dim);
+    letter-spacing: 0.02em;
+    margin-top: 4px;
+  }
+
+  .stats {
+    display: flex;
+    gap: 22px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-dim);
+  }
+  .stats .num {
+    display: block;
+    font-size: 20px;
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    margin: 22px 0 24px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  button { font-family: 'IBM Plex Sans', sans-serif; cursor: pointer; border: none; }
+
+  .btn-primary {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 10px 18px;
+    border-radius: 3px;
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    box-shadow: var(--shadow);
+  }
+  .btn-primary:hover { background: #1a2431; }
+
+  select.filter {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    padding: 9px 12px;
+    border: 1px solid var(--paper-line);
+    border-radius: 3px;
+    background: var(--card);
+    color: var(--ink);
+  }
+
+  .io-row {
+    display: flex;
+    gap: 10px;
+    margin: -10px 0 22px;
+  }
+  .io-btn {
+    background: none;
+    border: 1px solid var(--paper-line);
+    color: var(--ink-dim);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    padding: 6px 11px;
+    border-radius: 3px;
+  }
+  .io-btn:hover { border-color: var(--ink-dim); color: var(--ink); }
+
+  .hide-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-dim);
+    cursor: pointer;
+    user-select: none;
+  }
+  .hide-toggle input { cursor: pointer; }
+
+  .legend {
+    display: flex;
+    gap: 14px;
+    margin-left: auto;
+    flex-wrap: wrap;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-dim);
+    align-items: center;
+  }
+  .legend span { display: flex; align-items: center; gap: 5px; }
+  .dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+  .add-type-btn {
+    background: none;
+    border: 1px dashed var(--paper-line);
+    border-radius: 3px;
+    color: var(--ink-dim);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+  .add-type-btn:hover { border-color: var(--ink-dim); color: var(--ink); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 480px), 1fr));
+    gap: 18px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--paper-line);
+    border-radius: 4px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .card-head { padding: 16px 18px 12px; border-bottom: 1px dashed var(--paper-line); position: relative; }
+
+  .drag-handle {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    cursor: grab;
+    color: #c3cbd1;
+    font-size: 14px;
+    letter-spacing: 2px;
+    user-select: none;
+    padding: 2px 4px;
+  }
+  .drag-handle:hover { color: var(--ink-dim); }
+  .drag-handle:active { cursor: grabbing; }
+
+  .card.dragging { opacity: 0.4; }
+  .card.drop-target { outline: 2px dashed var(--copper); outline-offset: -2px; }
+
+  .tag-id {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--copper);
+    letter-spacing: 0.08em;
+    font-weight: 600;
+  }
+
+  .card-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 4px 0 6px;
+    word-break: break-word;
+    outline: none;
+  }
+
+  .card-notes {
+    font-size: 13px;
+    color: var(--ink-dim);
+    line-height: 1.4;
+    margin: 0 0 10px;
+    min-height: 18px;
+    outline: none;
+  }
+  .card-notes:empty:before { content: "Add a note..."; color: #a3b0ba; }
+
+  .status-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+
+  .status-pill {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 100px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .status-not-started { background: #e3e7ea; color: var(--ink-dim); }
+  .status-in-progress { background: #f3e2d1; color: var(--copper); }
+  .status-blocked { background: #f0ded2; color: var(--danger); }
+  .status-done { background: #dce9e2; color: var(--solder); }
+
+  .del-btn { background: none; color: #b7c0c8; font-size: 16px; line-height: 1; padding: 2px 4px; }
+  .del-btn:hover { color: var(--danger); }
+
+  .pads { display: flex; flex-wrap: wrap; gap: 4px; padding: 12px 18px; }
+  .pad { width: 14px; height: 14px; border-radius: 2px; border: 1.5px solid var(--copper-dim); background: transparent; cursor: pointer; }
+  .pad.empty-slot { visibility: hidden; }
+
+  .steps { padding: 2px 18px 14px; }
+
+  .step-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 7px 0;
+    border-bottom: 1px solid #f1f3f4;
+  }
+  .step-row:last-child { border-bottom: none; }
+
+  .step-check {
+    width: 16px; height: 16px; margin-top: 2px;
+    border: 1.5px solid var(--ink-dim);
+    border-radius: 3px; background: var(--card);
+    cursor: pointer; flex-shrink: 0; position: relative;
+  }
+  .step-check.checked { border-color: var(--ink); }
+  .step-check.checked::after {
+    content: ""; position: absolute; left: 4px; top: 1px;
+    width: 4px; height: 8px;
+    border: solid white; border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  .step-check.locked { cursor: not-allowed; opacity: 0.45; background: repeating-linear-gradient(45deg, #f1f3f4, #f1f3f4 3px, #e3e7ea 3px, #e3e7ea 6px); }
+  .pad.locked { cursor: not-allowed; opacity: 0.4; }
+
+  .step-body { flex: 1; min-width: 0; }
+  .step-toprow { display: flex; align-items: center; gap: 8px; }
+
+  .type-select {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .dep-btn {
+    background: none;
+    border: 1px solid var(--paper-line);
+    color: var(--ink-dim);
+    font-size: 11px;
+    border-radius: 3px;
+    padding: 2px 7px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .dep-btn:hover { border-color: var(--ink-dim); color: var(--ink); }
+  .dep-btn.has-deps { color: var(--copper); border-color: var(--copper-dim); }
+
+  .lock-hint {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--danger);
+    margin-top: 3px;
+  }
+
+  .dep-popover {
+    position: absolute;
+    background: var(--card);
+    border: 1px solid var(--paper-line);
+    border-radius: 4px;
+    box-shadow: var(--shadow);
+    padding: 10px;
+    z-index: 100;
+    min-width: 220px;
+    max-width: 300px;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+  .dep-popover .dep-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-dim);
+    margin-bottom: 6px;
+  }
+  .dep-popover label {
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    font-size: 12.5px;
+    padding: 4px 0;
+    cursor: pointer;
+  }
+  .dep-popover .dep-empty { font-size: 12.5px; color: var(--ink-dim); }
+  .dep-popover .dep-close {
+    margin-top: 8px;
+    background: var(--paper);
+    border: 1px solid var(--paper-line);
+    border-radius: 3px;
+    padding: 5px 10px;
+    font-size: 12px;
+    width: 100%;
+    font-weight: 600;
+  }
+
+  .step-text { flex: 1; font-size: 13.5px; line-height: 1.4; outline: none; }
+  .step-text.done { color: var(--ink-dim); text-decoration: line-through; }
+
+  .step-del { background: none; color: #c3cbd1; font-size: 13px; padding: 0 2px; flex-shrink: 0; }
+  .step-del:hover { color: var(--danger); }
+
+  .add-step { display: flex; gap: 8px; padding: 10px 18px 16px; flex-wrap: wrap; }
+  .add-step input {
+    flex: 1; min-width: 120px;
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 13px;
+    padding: 7px 10px; border: 1px solid var(--paper-line); border-radius: 3px; background: #fafbfb;
+  }
+  .add-step input:focus { outline: 1.5px solid var(--copper-dim); }
+  .add-step select {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    padding: 0 8px;
+    border: 1px solid var(--paper-line);
+    border-radius: 3px;
+    background: #fafbfb;
+    color: var(--ink);
+  }
+  .add-step button {
+    background: var(--paper); border: 1px solid var(--paper-line); color: var(--ink);
+    padding: 0 12px; border-radius: 3px; font-size: 12.5px; font-weight: 600;
+  }
+  .add-step button:hover { background: #e0e5e8; }
+
+  .empty-state { text-align: center; padding: 70px 20px; color: var(--ink-dim); }
+  .empty-state h2 { font-family: 'Space Grotesk', sans-serif; color: var(--ink); font-size: 20px; margin-bottom: 8px; }
+
+  .loading { text-align: center; padding: 60px; color: var(--ink-dim); font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: var(--paper); padding: 9px 18px; border-radius: 3px;
+    font-size: 13px; font-family: 'IBM Plex Mono', monospace;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+  }
+  .toast.show { opacity: 1; }
+
+  /* ---- view tabs, timer bar ---- */
+  #projFilters { display: contents; }
+  #projFilters.hidden { display: none; }
+
+  .tabs { display: flex; gap: 4px; margin: 22px 0 0; border-bottom: 1px solid var(--paper-line); }
+  .tabs button {
+    background: none; padding: 9px 18px;
+    font-family: 'Space Grotesk', sans-serif; font-size: 14.5px; font-weight: 600;
+    color: var(--ink-dim); border-bottom: 2px solid transparent; margin-bottom: -1px;
+  }
+  .tabs button:hover { color: var(--ink); }
+  .tabs button.active { color: var(--ink); border-bottom-color: var(--copper); }
+
+  .timer-bar {
+    display: none; align-items: center; gap: 12px;
+    background: var(--ink); color: var(--paper);
+    padding: 9px 14px; border-radius: 3px; margin-top: 16px;
+    font-size: 13px; box-shadow: var(--shadow);
+  }
+  .timer-bar.on { display: flex; }
+  .timer-bar .pulse { width: 9px; height: 9px; border-radius: 50%; background: var(--copper); animation: pulse 1.4s infinite; flex-shrink: 0; }
+  @keyframes pulse { 50% { opacity: 0.25; } }
+  .timer-bar .clock { font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
+  .timer-bar button { margin-left: auto; background: var(--copper); color: #fff; padding: 5px 12px; border-radius: 3px; font-weight: 600; font-size: 12px; }
+
+  /* ---- project card additions ---- */
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center;
+    padding: 10px 18px; border-bottom: 1px dashed var(--paper-line);
+    font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--ink-dim);
+  }
+  .stage-select {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.05em;
+    text-transform: uppercase; font-weight: 600; padding: 3px 6px; border-radius: 3px; border: none; cursor: pointer;
+  }
+  .meta-field { display: flex; align-items: center; gap: 5px; }
+  .meta-field.overdue { color: var(--danger); }
+  .meta-field.overdue input { border-color: var(--danger); color: var(--danger); }
+  .meta-field input[type=date], .due-field input[type=date] {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; padding: 2px 5px;
+    border: 1px solid var(--paper-line); border-radius: 3px; background: #fafbfb; color: var(--ink);
+  }
+  button.chip, .chip {
+    padding: 2px 8px; border-radius: 100px; background: var(--paper);
+    border: 1px solid var(--paper-line); white-space: nowrap;
+    font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--ink-dim);
+  }
+  button.chip { cursor: pointer; }
+  button.chip:hover { border-color: var(--ink-dim); color: var(--ink); }
+  .chip.warn { background: #f6ecd3; border-color: #e5cf93; color: #8a6420; }
+  .details-btn {
+    margin-left: auto; background: var(--paper); border: 1px solid var(--paper-line);
+    color: var(--ink); padding: 4px 10px; border-radius: 3px; font-size: 12px; font-weight: 600;
+  }
+  .details-btn:hover { background: #e0e5e8; }
+
+  .step-meta {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 4px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-dim);
+  }
+  .timer-btn {
+    background: none; border: 1px solid var(--paper-line); color: var(--ink-dim);
+    border-radius: 3px; padding: 1px 7px; font-size: 10.5px; font-family: 'IBM Plex Mono', monospace;
+  }
+  .timer-btn:hover { border-color: var(--ink-dim); color: var(--ink); }
+  .timer-btn.running { background: var(--copper); border-color: var(--copper); color: #fff; }
+  .step-time { cursor: pointer; }
+  .step-time:hover { color: var(--ink); text-decoration: underline; }
+  .due-field { display: flex; align-items: center; gap: 4px; }
+  .due-field input[type=date] { font-size: 11px; padding: 1px 4px; }
+  .due-field.overdue { color: var(--danger); }
+  .due-field.overdue input { border-color: var(--danger); color: var(--danger); }
+  .due-field.soon { color: #9a7424; }
+  .due-field.soon input { border-color: #e5cf93; }
+
+  /* ---- modal ---- */
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(34,49,66,0.45);
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 40px 20px; overflow-y: auto; z-index: 200;
+  }
+  .modal {
+    background: var(--card); border: 1px solid var(--paper-line); border-radius: 4px;
+    box-shadow: 0 12px 40px rgba(34,49,66,0.3); width: min(980px, 100%);
+  }
+  .modal.narrow { width: min(560px, 100%); }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 22px; border-bottom: 1px dashed var(--paper-line); gap: 12px; }
+  .modal-head h2 { font-family: 'Space Grotesk', sans-serif; font-size: 20px; margin: 0; }
+  .modal-x { background: none; font-size: 20px; color: var(--ink-dim); line-height: 1; padding: 2px 6px; }
+  .modal-x:hover { color: var(--danger); }
+  .modal-body { padding: 4px 22px 24px; }
+  .modal-section { margin-top: 22px; }
+  .modal-section h3 {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--copper); margin: 0 0 8px;
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  }
+  .modal-section h3 .sum { color: var(--ink-dim); letter-spacing: 0; text-transform: none; font-weight: 500; }
+  .sched-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-bottom: 10px; font-size: 13px; }
+  .sched-row label { display: flex; align-items: center; gap: 6px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--ink-dim); }
+  .sched-row input, .sched-row select, .add-row input, .add-row select {
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 12.5px; padding: 6px 8px;
+    border: 1px solid var(--paper-line); border-radius: 3px; background: #fafbfb; color: var(--ink);
+  }
+  table.dt { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.dt th {
+    text-align: left; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; text-transform: uppercase;
+    letter-spacing: 0.05em; color: var(--ink-dim); font-weight: 600; padding: 4px 6px; border-bottom: 1px solid var(--paper-line);
+  }
+  table.dt th.num, table.dt td.num { text-align: right; }
+  table.dt td { padding: 4px 6px; border-bottom: 1px solid #f1f3f4; vertical-align: middle; }
+  table.dt tfoot td { font-weight: 600; border-top: 2px solid var(--paper-line); border-bottom: none; }
+  table.dt td input, table.dt td select {
+    width: 100%; font: inherit; font-size: 12.5px; padding: 4px 6px;
+    border: 1px solid transparent; border-radius: 3px; background: transparent; color: var(--ink);
+  }
+  table.dt td input:hover, table.dt td select:hover { border-color: var(--paper-line); }
+  table.dt td input:focus { outline: 1.5px solid var(--copper-dim); background: #fff; }
+  table.dt td input[type=number] { text-align: right; }
+  .add-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; align-items: center; }
+  .add-row button, .modal-primary {
+    background: var(--ink); color: var(--paper); padding: 7px 14px; border-radius: 3px; font-size: 12.5px; font-weight: 600;
+  }
+  .row-del { background: none; color: #b7c0c8; font-size: 14px; padding: 0 4px; }
+  .row-del:hover { color: var(--danger); }
+  .muted { color: var(--ink-dim); font-size: 12.5px; }
+  .day-events { margin: 4px 0 14px; padding: 0; list-style: none; }
+  .day-events li { padding: 6px 0; border-bottom: 1px solid #f1f3f4; font-size: 13px; cursor: pointer; }
+  .day-events li:hover { color: var(--copper); }
+  .form-grid { display: grid; grid-template-columns: 110px 1fr; gap: 10px 12px; align-items: center; font-size: 13px; margin-bottom: 14px; }
+  .form-grid select { width: 100%; font-family: inherit; font-size: 13px; padding: 7px 8px; border: 1px solid var(--paper-line); border-radius: 3px; background: #fafbfb; }
+
+  /* ---- pipeline ---- */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 22px; }
+  .tile {
+    background: var(--card); border: 1px solid var(--paper-line); border-radius: 4px; box-shadow: var(--shadow);
+    padding: 14px 16px; border-top: 3px solid var(--tile-color, var(--copper));
+  }
+  .tile-num { font-family: 'Space Grotesk', sans-serif; font-size: 30px; font-weight: 700; line-height: 1.1; }
+  .tile-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-dim); margin-top: 2px; }
+  .tile-names { font-size: 12px; color: var(--ink-dim); margin-top: 8px; line-height: 1.45; }
+  .tile-flag { font-size: 12px; color: var(--danger); font-weight: 600; margin-top: 6px; }
+  .board { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 26px; align-items: start; }
+  .col { background: rgba(255,254,251,0.65); border: 1px solid var(--paper-line); border-radius: 4px; padding: 10px; }
+  .col-head {
+    display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; padding-bottom: 8px;
+    border-bottom: 2px solid var(--col-color); margin-bottom: 8px; color: var(--ink);
+  }
+  .col-empty { font-size: 12px; color: #a3b0ba; padding: 6px 2px; }
+  .mini { background: var(--card); border: 1px solid var(--paper-line); border-radius: 3px; padding: 9px 10px; margin-bottom: 8px; box-shadow: var(--shadow); }
+  .mini-title { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 14px; margin: 1px 0 5px; word-break: break-word; }
+  .mini-meta { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--ink-dim); display: flex; flex-wrap: wrap; gap: 4px 8px; margin-bottom: 7px; }
+  .mini-actions { display: flex; gap: 6px; align-items: center; }
+  .mini-actions select { flex: 1; min-width: 0; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; padding: 3px 4px; border: 1px solid var(--paper-line); border-radius: 3px; background: #fafbfb; color: var(--ink); }
+  .panel { background: var(--card); border: 1px solid var(--paper-line); border-radius: 4px; box-shadow: var(--shadow); padding: 14px 18px 16px; margin-bottom: 20px; }
+  .panel h3 { font-family: 'Space Grotesk', sans-serif; font-size: 16px; margin: 0 0 10px; display: flex; justify-content: space-between; align-items: baseline; }
+  .panel h3 .sum { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--ink-dim); font-weight: 500; }
+  .two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 18px; }
+  .mini-btn { background: var(--paper); border: 1px solid var(--paper-line); color: var(--ink); padding: 3px 9px; border-radius: 3px; font-size: 11.5px; font-weight: 600; white-space: nowrap; }
+  .mini-btn:hover { background: #e0e5e8; }
+  .overdue-txt { color: var(--danger); font-weight: 600; }
+  .link-btn { background: none; color: var(--ink); font-weight: 600; font-size: 13px; text-align: left; padding: 0; }
+  .link-btn:hover { color: var(--copper); text-decoration: underline; }
+  .panel table.dt td input[type=date] { width: auto; }
+
+  /* ---- calendar ---- */
+  .cal-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  .cal-head h2 { font-family: 'Space Grotesk', sans-serif; font-size: 22px; margin: 0 14px 0 4px; min-width: 190px; }
+  .cal-btn { background: var(--card); border: 1px solid var(--paper-line); padding: 6px 12px; border-radius: 3px; font-size: 13px; font-weight: 600; color: var(--ink); }
+  .cal-btn:hover { background: #e9edf0; }
+  .cal-key { margin-left: auto; display: flex; gap: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-dim); }
+  .cal-key span::before { content: ""; display: inline-block; width: 9px; height: 9px; margin-right: 5px; border-left: 3px solid var(--k); background: var(--kbg); }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-left: 1px solid var(--paper-line); border-top: 1px solid var(--paper-line); background: var(--card); box-shadow: var(--shadow); margin-bottom: 24px; }
+  .cal-dow { padding: 6px 8px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-dim); background: var(--paper); border-right: 1px solid var(--paper-line); border-bottom: 1px solid var(--paper-line); }
+  .cal-day { min-height: 112px; padding: 5px 6px; border-right: 1px solid var(--paper-line); border-bottom: 1px solid var(--paper-line); cursor: pointer; min-width: 0; }
+  .cal-day:hover { background: #faf7f2; }
+  .cal-day.other { background: #f4f6f7; }
+  .cal-day.other .cal-num { color: #a3b0ba; }
+  .cal-num { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; display: inline-block; margin-bottom: 3px; }
+  .cal-day.today .cal-num { background: var(--copper); color: #fff; border-radius: 100px; padding: 1px 7px; }
+  .chip-ev {
+    display: block; font-size: 11.5px; line-height: 1.3; padding: 2px 5px; border-radius: 2px; margin-bottom: 2px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;
+    border-left: 3px solid var(--ink); background: var(--paper);
+  }
+  .chip-ev.ev-ship { border-color: var(--copper); background: #f3e2d1; font-weight: 600; }
+  .chip-ev.ev-eta { border-color: var(--amber); background: #f6ecd3; }
+  .chip-ev.done { text-decoration: line-through; color: var(--ink-dim); border-color: #a3b0ba; background: #eef1f3; font-weight: 400; }
+  .chip-ev.overdue { border-color: var(--danger); background: #f0ded2; color: var(--danger); }
+  .ev-more { font-size: 11px; color: var(--ink-dim); }
+  .up-kind { display: inline-block; min-width: 44px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; font-weight: 600; letter-spacing: 0.05em; }
+
+  /* ---- sync controls ---- */
+  .io-row { flex-wrap: wrap; }
+  .io-btn.sync-btn.ok { color: var(--solder); border-color: #b9d3c6; }
+  .io-btn.sync-btn.warn { color: var(--danger); border-color: #dcb3aa; background: #fbf1ee; }
+  .io-btn.sync-btn.busy { color: var(--copper); border-color: var(--copper-dim); }
+  .form-grid input {
+    width: 100%; font-family: inherit; font-size: 13px; padding: 7px 8px;
+    border: 1px solid var(--paper-line); border-radius: 3px; background: #fafbfb; color: var(--ink);
+  }
+  .inline-field { display: flex; gap: 6px; align-items: center; }
+  .inline-field input { flex: 1; min-width: 0; }
+  .sync-msg { min-height: 20px; margin: 4px 0 12px; line-height: 1.4; }
+  .sync-msg.bad { color: var(--danger); }
+  .top-btn {
+    position: absolute; top: 12px; right: 44px; background: none; border: 1px solid var(--paper-line);
+    color: var(--ink-dim); border-radius: 3px; padding: 2px 8px; font-size: 11px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .top-btn:hover { border-color: var(--ink-dim); color: var(--ink); }
+
+  /* ---- phone layout ---- */
+  @media (pointer: coarse) {
+    .drag-handle { display: none; }          /* HTML5 drag-and-drop doesn't work on touch screens */
+    .top-btn { right: 16px; padding: 6px 12px; font-size: 12px; }
+  }
+
+  @media (max-width: 640px) {
+    body { padding: 16px 12px 70px; }
+    header { align-items: flex-start; }
+    .title-block h1 { font-size: 26px; }
+    .title-block .sub { font-size: 11.5px; }
+    .stats { gap: 6px 16px; flex-wrap: wrap; }
+    .stats .num { font-size: 17px; }
+
+    .tabs { overflow-x: auto; margin-top: 14px; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tabs button { padding: 11px 14px; white-space: nowrap; font-size: 14px; }
+
+    .toolbar { gap: 8px; margin: 14px 0 16px; }
+    #projFilters { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; align-items: center; }
+    #projFilters.hidden { display: none; }
+    .legend { margin-left: 0; width: 100%; }
+    .btn-primary { padding: 11px 16px; }
+    select.filter { padding: 10px 10px; font-size: 14px; }
+    .io-row { margin-top: 0; }
+    .io-btn { padding: 9px 12px; font-size: 12px; }
+
+    .timer-bar { flex-wrap: wrap; gap: 8px; }
+    .timer-bar button { padding: 8px 14px; }
+
+    /* cards */
+    .card-head { padding: 14px 14px 10px; }
+    .card-title { font-size: 17px; margin-right: 76px; }
+    .drag-handle { display: none; }
+    .top-btn { right: 14px; padding: 6px 12px; font-size: 12px; }
+    .meta-row { padding: 10px 14px; gap: 8px; }
+    .meta-field input[type=date], .due-field input[type=date] { font-size: 16px; padding: 5px 6px; }
+    .stage-select { font-size: 12px; padding: 7px 8px; }
+    button.chip, .chip { padding: 6px 11px; font-size: 12px; }
+    .details-btn { padding: 8px 14px; }
+    .pads { padding: 10px 14px; gap: 5px; }
+    .pad { width: 20px; height: 20px; }
+    .steps { padding: 2px 14px 12px; }
+    .step-row { gap: 10px; padding: 10px 0; }
+    .step-check { width: 24px; height: 24px; margin-top: 0; }
+    .step-check.checked::after { left: 7px; top: 2px; width: 6px; height: 12px; }
+    .step-toprow { flex-wrap: wrap; row-gap: 6px; }
+    .step-text { order: 10; flex: 1 1 100%; font-size: 15px; padding: 2px 0; }
+    .type-select { font-size: 11px; padding: 6px 8px; }
+    .dep-btn { font-size: 12px; padding: 6px 10px; }
+    .step-del { margin-left: auto; font-size: 16px; padding: 6px 10px; }
+    .timer-btn { padding: 6px 12px; font-size: 12px; }
+    .step-meta { gap: 8px 12px; font-size: 12px; }
+    .add-step { padding: 10px 14px 14px; }
+    .add-step input, .add-step select { font-size: 16px; padding: 9px 10px; }
+    .add-step input { flex: 1 1 100%; order: 2; }
+    .add-step button { padding: 9px 16px; order: 3; }
+    .dep-popover { max-width: calc(100vw - 24px); }
+
+    /* dialogs become full-screen sheets */
+    .modal-backdrop { padding: 0; }
+    .modal, .modal.narrow { width: 100%; min-height: 100%; border-radius: 0; border: none; }
+    .modal-head { padding: 14px; position: sticky; top: 0; background: var(--card); z-index: 2; }
+    .modal-head h2 { font-size: 17px; }
+    .modal-x { font-size: 24px; padding: 4px 10px; }
+    .modal-body { padding: 4px 14px 40px; }
+    .sched-row input, .sched-row select, .add-row input, .add-row select, .form-grid input, .form-grid select { font-size: 16px; padding: 9px 10px; }
+    .add-row { gap: 8px; }
+    .add-row input[style], .add-row select[style] { width: 100% !important; max-width: none !important; flex: 1 1 100%; }
+    .add-row button, .modal-primary { padding: 11px 18px; }
+    .form-grid { grid-template-columns: 1fr; gap: 4px; }
+    .form-grid label { margin-top: 6px; }
+
+    /* the editable tables turn into one card per row */
+    .modal table.dt, .modal table.dt tbody, .modal table.dt tr, .modal table.dt td, table.dt.stack, table.dt.stack tbody, table.dt.stack tr, table.dt.stack td { display: block; width: auto !important; }
+    .modal table.dt thead, table.dt.stack thead { display: none; }
+    .modal table.dt tr, table.dt.stack tr { position: relative; border: 1px solid var(--paper-line); border-radius: 4px; padding: 10px 12px; margin-bottom: 10px; background: #fff; }
+    .modal table.dt td, table.dt.stack td { border: none; padding: 4px 0; }
+    .modal table.dt td[data-label]::before, table.dt.stack td[data-label]::before {
+      content: attr(data-label); display: block; font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-dim); margin-bottom: 2px;
+    }
+    .modal table.dt td.num, table.dt.stack td.num { text-align: left; }
+    .modal table.dt td input, .modal table.dt td select, table.dt.stack td input, table.dt.stack td select { font-size: 16px; padding: 9px 10px; border-color: var(--paper-line); background: #fafbfb; }
+    .modal table.dt td input[type=number], table.dt.stack td input[type=number] { text-align: left; }
+    .modal table.dt td.row-end, table.dt.stack td.row-end { position: absolute; top: 4px; right: 4px; padding: 0; }
+    .row-del { font-size: 18px; padding: 6px 10px; }
+
+    /* pipeline, costs */
+    .tiles { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .tile { padding: 12px; }
+    .tile-num { font-size: 26px; }
+    .panel { padding: 12px 12px 14px; overflow-x: auto; }
+    .panel table.dt:not(.stack):not(.upcoming) { min-width: 520px; }
+    .panel h3 { flex-wrap: wrap; gap: 2px 12px; }
+    .panel table.dt.stack td.num { text-align: left; }
+    table.dt.upcoming, table.dt.upcoming tbody { display: block; }
+    table.dt.upcoming tr { display: flex; flex-wrap: wrap; gap: 2px 12px; padding: 9px 0; border-bottom: 1px solid #f1f3f4; }
+    table.dt.upcoming td { display: block; width: auto !important; border: none; padding: 0; }
+    table.dt.upcoming td:nth-child(3) { order: 5; flex: 1 1 100%; }
+    table.dt.upcoming td.num { text-align: left; }
+    table.dt.stack tr .mini-btn { margin: 4px 6px 0 0; }
+    .mini-actions select { font-size: 14px; padding: 7px 6px; }
+    .mini-btn { padding: 7px 11px; font-size: 12px; }
+
+    /* calendar: colored bars on the grid, tap a day for the list */
+    .cal-head { gap: 8px; }
+    .cal-head h2 { font-size: 18px; min-width: 0; margin: 0 4px; flex: 1; }
+    .cal-key { margin-left: 0; width: 100%; flex-wrap: wrap; gap: 6px 14px; }
+    .cal-btn { padding: 9px 14px; }
+    .cal-dow { padding: 5px 2px; text-align: center; font-size: 9.5px; letter-spacing: 0; }
+    .cal-day { min-height: 58px; padding: 3px; }
+    .cal-num { font-size: 11px; }
+    .chip-ev { height: 5px; padding: 0; font-size: 0; border-left: none; border-radius: 3px; margin-bottom: 3px; background: var(--ink); }
+    .chip-ev.ev-ship { background: var(--copper); }
+    .chip-ev.ev-eta { background: var(--amber); }
+    .chip-ev.done { background: #c3cbd1; }
+    .chip-ev.overdue { background: var(--danger); }
+    .ev-more { font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="title-block">
+      <h1>Traveler</h1>
+      <div class="sub">PROJECT ROUTE SHEET — every step, checked off in order</div>
+    </div>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <div class="timer-bar" id="timerBar"></div>
+
+  <nav class="tabs" id="tabs">
+    <button data-view="projects">Projects</button>
+    <button data-view="pipeline">Pipeline</button>
+    <button data-view="calendar">Calendar</button>
+    <button data-view="costs">Costs &amp; Time</button>
+  </nav>
+
+  <div class="toolbar">
+    <button class="btn-primary" id="addProjectBtn">+ New project</button>
+    <div id="projFilters">
+    <select class="filter" id="filterSelect">
+      <option value="all">All projects</option>
+      <option value="not-started">Not started</option>
+      <option value="in-progress">In progress</option>
+      <option value="blocked">Blocked</option>
+      <option value="done">Done</option>
+    </select>
+    <select class="filter" id="typeFilterSelect">
+      <option value="all">All work types</option>
+    </select>
+    <label class="hide-toggle">
+      <input type="checkbox" id="hideCompletedToggle">
+      Hide completed steps
+    </label>
+    <div class="legend" id="legend"></div>
+    </div>
+  </div>
+
+  <div class="io-row">
+    <button class="io-btn sync-btn" id="syncBtn">☁ Set up sync</button>
+    <button class="io-btn" id="syncSettingsBtn">Sync settings</button>
+    <button class="io-btn" id="exportBtn">Export to .json</button>
+    <button class="io-btn" id="importBtn">Import from .json</button>
+    <input type="file" id="importFile" accept="application/json" style="display:none">
+  </div>
+
+  <div id="content" class="loading">Loading route sheets...</div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="modalRoot"></div>
+
+<script>
+const STORAGE_KEY = 'traveler-projects-v5';
+const LEGACY_KEYS = ['traveler-projects-v4', 'traveler-projects-v3', 'traveler-projects-v2'];
+
+// Project stages, in pipeline order. Edit this list to rename or add stages.
+const STAGES = [
+  { id: 'design', label: 'Design', color: '#46708a' },
+  { id: 'waiting-parts', label: 'Waiting on parts', color: '#c99a3a' },
+  { id: 'assembly', label: 'Assembly', color: '#7a5473' },
+  { id: 'testing', label: 'Testing', color: '#bf6a35' },
+  { id: 'ready', label: 'Ready to ship', color: '#3f8078' },
+  { id: 'shipped', label: 'Shipped', color: '#4c7a63' }
+];
+const PART_STATUSES = [
+  { id: 'needed', label: 'To order' },
+  { id: 'ordered', label: 'Ordered' },
+  { id: 'shipped', label: 'Shipped' },
+  { id: 'delivered', label: 'Delivered' }
+];
+
+function uid(prefix) {
+  return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+function ensureProjectFields(p) {
+  if (!Array.isArray(p.steps)) p.steps = [];
+  if (!STAGES.some(s => s.id === p.stage)) p.stage = 'design';
+  if (typeof p.shipDate !== 'string') p.shipDate = '';
+  ['parts', 'expenses', 'timeEntries'].forEach(k => { if (!Array.isArray(p[k])) p[k] = []; });
+
+  p.steps.forEach(s => {
+    if (!s.id) s.id = uid('s');
+    if (!s.type) s.type = 'mechanical';
+    if (!Array.isArray(s.dependsOn)) s.dependsOn = [];
+    if (typeof s.deadline !== 'string') s.deadline = '';
+  });
+  // drop dependency references to steps that no longer exist
+  const validIds = new Set(p.steps.map(s => s.id));
+  p.steps.forEach(s => { s.dependsOn = s.dependsOn.filter(id => validIds.has(id)); });
+
+  p.parts.forEach(pt => {
+    if (!pt.id) pt.id = uid('pt');
+    if (!PART_STATUSES.some(x => x.id === pt.status)) pt.status = 'needed';
+    pt.name = pt.name || 'Part';
+    pt.qty = Number(pt.qty) || 0;
+    pt.unitCost = Number(pt.unitCost) || 0;
+    if (typeof pt.eta !== 'string') pt.eta = '';
+    if (typeof pt.supplier !== 'string') pt.supplier = '';
+  });
+  p.expenses.forEach(ex => {
+    if (!ex.id) ex.id = uid('x');
+    ex.amount = Number(ex.amount) || 0;
+    if (typeof ex.date !== 'string') ex.date = '';
+    if (typeof ex.desc !== 'string') ex.desc = '';
+  });
+  p.timeEntries.forEach(te => {
+    if (!te.id) te.id = uid('t');
+    te.seconds = Number(te.seconds) || 0;
+    if (typeof te.date !== 'string') te.date = '';
+    if (typeof te.note !== 'string') te.note = '';
+    if (!te.stepId) te.stepId = null;
+  });
+}
+
+// ---- dates (all stored as local YYYY-MM-DD strings) ----
+function dateStr(d) {
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
+function todayStr() { return dateStr(new Date()); }
+function parseDate(str) {
+  const [y, m, d] = str.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+function daysUntil(str) {
+  return Math.round((parseDate(str) - parseDate(todayStr())) / 86400000);
+}
+function fmtNiceDate(str) {
+  if (!str) return '';
+  return parseDate(str).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+// ---- formatting ----
+function fmtDuration(sec) {
+  sec = Math.max(0, Math.round(sec));
+  if (sec === 0) return '0m';
+  if (sec < 60) return '<1m';
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  return h ? `${h}h ${m}m` : `${m}m`;
+}
+function fmtClock(sec) {
+  sec = Math.max(0, Math.floor(sec));
+  const h = String(Math.floor(sec / 3600)).padStart(2, '0');
+  const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
+  const s = String(sec % 60).padStart(2, '0');
+  return `${h}:${m}:${s}`;
+}
+function money(n) {
+  return '$' + (Number(n) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// ---- stages and cost/time rollups ----
+function getStage(id) { return STAGES.find(s => s.id === id) || STAGES[0]; }
+function partLine(pt) { return (pt.qty || 0) * (pt.unitCost || 0); }
+function partsPlanned(p) { return p.parts.reduce((a, pt) => a + partLine(pt), 0); }
+function partsOrdered(p) { return p.parts.filter(pt => pt.status !== 'needed').reduce((a, pt) => a + partLine(pt), 0); }
+function expensesTotal(p) { return p.expenses.reduce((a, ex) => a + (ex.amount || 0), 0); }
+function projectTotal(p) { return partsPlanned(p) + expensesTotal(p); }
+function projectSpent(p) { return partsOrdered(p) + expensesTotal(p); }
+function projectSeconds(p) { return p.timeEntries.reduce((a, te) => a + (te.seconds || 0), 0); }
+function stepSeconds(p, stepId) { return p.timeEntries.filter(te => te.stepId === stepId).reduce((a, te) => a + te.seconds, 0); }
+function partsOutstanding(p) { return p.parts.filter(pt => pt.status !== 'delivered'); }
+
+function escapeAttr(str) {
+  return escapeHtml(str).replace(/"/g, '&quot;');
+}
+
+// Default work types. More can be added from the UI; colors are assigned
+// from PALETTE in order, so new types keep the same visual language.
+const DEFAULT_TYPES = [
+  { id: 'mechanical', label: 'Mechanical', color: '#5b6b7a' },
+  { id: 'software', label: 'Software', color: '#bf6a35' },
+  { id: 'validation', label: 'Validation', color: '#4c7a63' }
+];
+const PALETTE = ['#5b6b7a', '#bf6a35', '#4c7a63', '#c99a3a', '#46708a', '#7a5473', '#3f8078', '#a4463a', '#8a6d3f', '#5f7a46'];
+
+let projects = [];
+let types = [];
+let filter = 'all';
+let typeFilter = 'all';
+let hideCompleted = false;
+let seq = 1;
+let lastType = 'mechanical';
+let draggedProjectId = null;
+let activeTimer = null;          // { projectId, stepId, start }
+let currentView = 'projects';
+const _now = new Date();
+let calYear = _now.getFullYear();
+let calMonth = _now.getMonth();
+let modalProjectId = null;
+
+// ---- sync state ----
+// Everything below is saved with the data so unsynced edits survive a reload.
+const SYNC_CFG_KEY = 'traveler-sync-settings';   // per device: Web app URL + secret (never exported)
+let syncCfg = { url: '', secret: '' };
+let sync = { rev: 0, dirty: {}, tombstones: [], metaDirty: false, lastSyncAt: 0 };
+let metaUpdatedAt = 0;
+let snapshots = new Map();       // project id -> JSON string (without updatedAt), to detect edits
+let stamps = new Map();          // project id -> last updatedAt we know of
+let metaSnapshot = '';
+let syncing = false;
+let syncAgain = false;
+let syncTimer = null;
+let syncStatus = { state: 'off', message: '' };   // off | ok | syncing | offline | error
+let pendingRender = false;
+
+const contentEl = document.getElementById('content');
+const statsEl = document.getElementById('stats');
+const toastEl = document.getElementById('toast');
+const legendEl = document.getElementById('legend');
+const typeFilterSelect = document.getElementById('typeFilterSelect');
+
+function showToast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  setTimeout(() => toastEl.classList.remove('show'), 1600);
+}
+
+function hexToRgba(hex, alpha) {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function getType(id) {
+  return types.find(t => t.id === id) || types[0] || DEFAULT_TYPES[0];
+}
+
+function slugify(label) {
+  let base = label.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  if (!base) base = 'type';
+  let slug = base, i = 2;
+  while (types.some(t => t.id === slug)) { slug = `${base}-${i++}`; }
+  return slug;
+}
+
+function readSaved(key) {
+  const raw = localStorage.getItem(key);
+  return raw ? JSON.parse(raw) : null;
+}
+
+function loadData() {
+  try {
+    let parsed = readSaved(STORAGE_KEY);
+    let migrated = false;
+    if (!parsed) {
+      // fall back to older storage versions so existing work carries forward
+      for (const key of LEGACY_KEYS) {
+        parsed = readSaved(key);
+        if (parsed) { migrated = true; break; }
+      }
+    }
+    if (parsed) {
+      projects = Array.isArray(parsed.projects) ? parsed.projects : [];
+      seq = parsed.seq || (projects.length + 1);
+      types = (parsed.types && parsed.types.length) ? parsed.types : DEFAULT_TYPES.slice();
+      activeTimer = parsed.activeTimer || null;
+      if (parsed.sync) {
+        sync = Object.assign({ rev: 0, dirty: {}, tombstones: [], metaDirty: false, lastSyncAt: 0 }, parsed.sync);
+        metaUpdatedAt = Number(parsed.metaUpdatedAt) || 0;
+      }
+    } else {
+      types = DEFAULT_TYPES.slice();
+    }
+    projects.forEach(ensureProjectFields);
+    // Data saved before sync existed: stamp it so the first connect uploads everything.
+    const stamp = Date.now();
+    projects.forEach(p => {
+      if (!p.updatedAt) { p.updatedAt = stamp; sync.dirty[p.id] = true; }
+    });
+    if (projects.length && !metaUpdatedAt) { metaUpdatedAt = stamp; sync.metaDirty = true; }
+    if (activeTimer && !projects.some(p => p.id === activeTimer.projectId)) activeTimer = null;
+    lastType = types[0].id;
+    rebuildSnapshots();
+    if (migrated) persist();
+  } catch (e) {
+    projects = [];
+    types = DEFAULT_TYPES.slice();
+    rebuildSnapshots();
+    showToast('Could not read saved data — starting fresh');
+  }
+  loadSyncSettings();
+  renderLegendAndFilter();
+  render();
+  renderSyncButton();
+  if (syncConfigured()) syncNow();
+}
+
+// ---- saving and change tracking ----
+function projectSnap(p) {
+  return JSON.stringify(p, (k, v) => (k === 'updatedAt' ? undefined : v));
+}
+
+function currentMeta() {
+  return { updatedAt: metaUpdatedAt, types, seq, order: projects.map(p => p.id) };
+}
+
+function metaSnap() {
+  return JSON.stringify({ types, seq, order: projects.map(p => p.id) });
+}
+
+function rebuildSnapshots() {
+  snapshots = new Map(projects.map(p => [p.id, projectSnap(p)]));
+  stamps = new Map(projects.map(p => [p.id, p.updatedAt || 0]));
+  metaSnapshot = metaSnap();
+}
+
+// Compare against the last known state; stamp whatever changed so sync knows what to send.
+// updatedAt only ever moves forward, even if this device's clock is behind another's.
+function trackChanges() {
+  const now = Date.now();
+  const liveIds = new Set(projects.map(p => p.id));
+  projects.forEach(p => {
+    const snap = projectSnap(p);
+    if (snapshots.get(p.id) !== snap) {
+      p.updatedAt = Math.max(now, (p.updatedAt || 0) + 1);
+      snapshots.set(p.id, snap);
+      stamps.set(p.id, p.updatedAt);
+      sync.dirty[p.id] = true;
+    }
+  });
+  [...snapshots.keys()].forEach(id => {
+    if (liveIds.has(id)) return;
+    const stamp = Math.max(now, (stamps.get(id) || 0) + 1);
+    snapshots.delete(id);
+    stamps.delete(id);
+    delete sync.dirty[id];
+    sync.tombstones = sync.tombstones.filter(t => t.id !== id);
+    sync.tombstones.push({ id, updatedAt: stamp });
+  });
+  const ms = metaSnap();
+  if (ms !== metaSnapshot) {
+    metaSnapshot = ms;
+    metaUpdatedAt = Math.max(now, metaUpdatedAt + 1);
+    sync.metaDirty = true;
+  }
+}
+
+function persist() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ projects, seq, types, activeTimer, sync, metaUpdatedAt }));
+  } catch (e) {
+    showToast('Save failed — your browser may be blocking local storage');
+  }
+}
+
+function saveData() {
+  trackChanges();
+  persist();
+  renderSyncButton();
+  scheduleSync();
+}
+
+function renderLegendAndFilter() {
+  legendEl.innerHTML = types.map(t =>
+    `<span><span class="dot" style="background:${t.color}"></span>${escapeHtml(t.label)}</span>`
+  ).join('') + `<button class="add-type-btn" id="addTypeBtn">+ Type</button>`;
+  document.getElementById('addTypeBtn').addEventListener('click', addType);
+
+  const current = typeFilterSelect.value;
+  typeFilterSelect.innerHTML = '<option value="all">All work types</option>' +
+    types.map(t => `<option value="${t.id}">${escapeHtml(t.label)}</option>`).join('');
+  typeFilterSelect.value = types.some(t => t.id === current) ? current : 'all';
+  typeFilter = typeFilterSelect.value;
+}
+
+function addType() {
+  const label = prompt('New work type (e.g. Electrical):');
+  if (!label || !label.trim()) return;
+  const id = slugify(label.trim());
+  const color = PALETTE[types.length % PALETTE.length];
+  types.push({ id, label: label.trim(), color });
+  lastType = id;
+  saveData();
+  renderLegendAndFilter();
+  render();
+}
+
+function computeStatus(p) {
+  const total = p.steps.length;
+  const done = p.steps.filter(s => s.done).length;
+  if (p.blocked) return 'blocked';
+  if (total === 0) return 'not-started';
+  if (done === total) return 'done';
+  if (done === 0) return 'not-started';
+  return 'in-progress';
+}
+
+function findStep(p, id) {
+  return p.steps.find(s => s.id === id);
+}
+
+function isLocked(p, step) {
+  return step.dependsOn.some(depId => {
+    const dep = findStep(p, depId);
+    return dep && !dep.done;
+  });
+}
+
+function unmetPrecedents(p, step) {
+  return step.dependsOn
+    .map(id => findStep(p, id))
+    .filter(dep => dep && !dep.done);
+}
+
+// Would adding "fromId depends on candidateId" create a cycle?
+// True if candidateId already (transitively) depends on fromId.
+function wouldCreateCycle(p, fromId, candidateId, visited = new Set()) {
+  if (fromId === candidateId) return true;
+  if (visited.has(candidateId)) return false;
+  visited.add(candidateId);
+  const candidate = findStep(p, candidateId);
+  if (!candidate) return false;
+  if (candidate.dependsOn.includes(fromId)) return true;
+  return candidate.dependsOn.some(depId => wouldCreateCycle(p, fromId, depId, visited));
+}
+
+function closeDepPopover() {
+  const existing = document.getElementById('depPopover');
+  if (existing) existing.remove();
+  document.removeEventListener('mousedown', outsideDepClick, true);
+}
+
+function outsideDepClick(e) {
+  const pop = document.getElementById('depPopover');
+  if (pop && !pop.contains(e.target)) closeDepPopover();
+}
+
+function openDepPopover(anchorEl, p, step) {
+  closeDepPopover();
+  const others = p.steps.filter(s => s.id !== step.id);
+  const pop = document.createElement('div');
+  pop.className = 'dep-popover';
+  pop.id = 'depPopover';
+
+  if (others.length === 0) {
+    pop.innerHTML = `<div class="dep-title">Depends on</div><div class="dep-empty">No other steps in this project yet.</div>`;
+  } else {
+    pop.innerHTML = `<div class="dep-title">Depends on</div>` + others.map(o => `
+      <label>
+        <input type="checkbox" data-id="${o.id}" ${step.dependsOn.includes(o.id) ? 'checked' : ''}>
+        <span>${escapeHtml(o.text)}</span>
+      </label>
+    `).join('');
+  }
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'dep-close';
+  closeBtn.textContent = 'Done';
+  closeBtn.addEventListener('click', closeDepPopover);
+  pop.appendChild(closeBtn);
+
+  pop.querySelectorAll('input[type=checkbox]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const targetId = cb.dataset.id;
+      if (cb.checked) {
+        if (wouldCreateCycle(p, step.id, targetId)) {
+          cb.checked = false;
+          alert("Can't add that — it would create a circular dependency.");
+          return;
+        }
+        step.dependsOn.push(targetId);
+      } else {
+        step.dependsOn = step.dependsOn.filter(id => id !== targetId);
+      }
+      saveData();
+      render();
+    });
+  });
+
+  document.body.appendChild(pop);
+  const rect = anchorEl.getBoundingClientRect();
+  pop.style.top = `${window.scrollY + rect.bottom + 4}px`;
+  pop.style.left = `${window.scrollX + rect.left}px`;
+  setTimeout(() => document.addEventListener('mousedown', outsideDepClick, true), 0);
+}
+
+function statusLabel(s) {
+  return { 'not-started': 'Not started', 'in-progress': 'In progress', 'blocked': 'Blocked', 'done': 'Done' }[s];
+}
+
+function renderStats() {
+  const total = projects.length;
+  const done = projects.filter(p => computeStatus(p) === 'done').length;
+  const stepsRemaining = projects.reduce((acc, p) => acc + p.steps.filter(s => !s.done).length, 0);
+  const partsOpen = projects.reduce((acc, p) => acc + partsOutstanding(p).length, 0);
+  const totalCost = projects.reduce((acc, p) => acc + projectTotal(p), 0);
+  statsEl.innerHTML = `
+    <div><span class="num">${total}</span>projects</div>
+    <div><span class="num">${done}</span>done</div>
+    <div><span class="num">${stepsRemaining}</span>steps left</div>
+    <div><span class="num">${partsOpen}</span>parts open</div>
+    <div><span class="num">${money(totalCost)}</span>total cost</div>
+  `;
+}
+
+function renderTabs() {
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('active', b.dataset.view === currentView));
+}
+
+function render() {
+  renderStats();
+  renderTimerBar();
+  renderTabs();
+  document.getElementById('projFilters').classList.toggle('hidden', currentView !== 'projects');
+
+  if (projects.length === 0) {
+    contentEl.className = '';
+    contentEl.innerHTML = `<div class="empty-state">
+      <h2>No projects on the bench yet</h2>
+      <p>Start a route sheet for whatever you're building — SpeedNode, the AOI rig, planter test stand, anything.</p>
+    </div>`;
+    return;
+  }
+
+  contentEl.className = '';
+  if (currentView === 'pipeline') renderPipelineView();
+  else if (currentView === 'calendar') renderCalendarView();
+  else if (currentView === 'costs') renderCostsView();
+  else renderProjectsView();
+}
+
+function renderProjectsView() {
+  const visible = projects.filter(p => {
+    const statusOk = filter === 'all' || computeStatus(p) === filter;
+    const typeOk = typeFilter === 'all' || p.steps.some(s => s.type === typeFilter);
+    const hasRemaining = p.steps.length === 0 || p.steps.some(s => !s.done);
+    const hideOk = !hideCompleted || hasRemaining;
+    return statusOk && typeOk && hideOk;
+  });
+
+  if (projects.length === 0) {
+    contentEl.className = '';
+    contentEl.innerHTML = `<div class="empty-state">
+      <h2>No projects on the bench yet</h2>
+      <p>Start a route sheet for whatever you're building — SpeedNode, the AOI rig, planter test stand, anything.</p>
+    </div>`;
+    return;
+  }
+
+  if (visible.length === 0) {
+    contentEl.className = '';
+    const allDoneMsg = hideCompleted && filter === 'all' && typeFilter === 'all' && projects.length > 0
+      ? 'Everything is done — nice work.'
+      : 'Nothing matches that filter';
+    contentEl.innerHTML = `<div class="empty-state"><h2>${allDoneMsg}</h2></div>`;
+    return;
+  }
+
+  contentEl.className = 'grid';
+  contentEl.innerHTML = '';
+  visible.forEach(p => contentEl.appendChild(renderCard(p)));
+}
+
+function renderCard(p) {
+  const status = computeStatus(p);
+  let displaySteps = typeFilter === 'all' ? p.steps : p.steps.filter(s => s.type === typeFilter);
+  if (hideCompleted) displaySteps = displaySteps.filter(s => !s.done);
+  const total = displaySteps.length;
+
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.dataset.projectId = p.id;
+
+  card.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    if (draggedProjectId && draggedProjectId !== p.id) card.classList.add('drop-target');
+  });
+  card.addEventListener('dragleave', () => card.classList.remove('drop-target'));
+  card.addEventListener('drop', (e) => {
+    e.preventDefault();
+    card.classList.remove('drop-target');
+    if (!draggedProjectId || draggedProjectId === p.id) return;
+    const fromIdx = projects.findIndex(x => x.id === draggedProjectId);
+    if (fromIdx === -1) return;
+    const [moved] = projects.splice(fromIdx, 1);
+    const toIdx = projects.findIndex(x => x.id === p.id);
+    projects.splice(toIdx, 0, moved);
+    saveData(); render();
+  });
+
+  const head = document.createElement('div');
+  head.className = 'card-head';
+  head.innerHTML = `
+    <button class="top-btn" title="Move this project to the top">⤒ Top</button>
+    <span class="drag-handle" title="Drag to reorder" draggable="true">⠿</span>
+    <span class="tag-id">TR-${String(p.num).padStart(3,'0')}</span>
+    <div class="card-title" contenteditable="true" spellcheck="false">${escapeHtml(p.name)}</div>
+    <div class="card-notes" contenteditable="true" spellcheck="false">${escapeHtml(p.notes || '')}</div>
+    <div class="status-row">
+      <span class="status-pill status-${status}" title="Double-click to toggle blocked">${statusLabel(status)}</span>
+      <button class="del-btn" title="Delete project">✕</button>
+    </div>
+  `;
+  const titleEl = head.querySelector('.card-title');
+  titleEl.addEventListener('blur', () => { p.name = titleEl.textContent.trim() || 'Untitled'; saveData(); });
+  const notesEl = head.querySelector('.card-notes');
+  notesEl.addEventListener('blur', () => { p.notes = notesEl.textContent.trim(); saveData(); });
+  head.querySelector('.del-btn').addEventListener('click', () => {
+    if (confirm(`Delete "${p.name}"? This can't be undone.`)) {
+      if (activeTimer && activeTimer.projectId === p.id) activeTimer = null;
+      projects = projects.filter(x => x.id !== p.id);
+      saveData(); render();
+    }
+  });
+  head.querySelector('.status-pill').addEventListener('dblclick', () => {
+    p.blocked = !p.blocked;
+    saveData(); render();
+  });
+  head.querySelector('.top-btn').addEventListener('click', () => {
+    const i = projects.findIndex(x => x.id === p.id);
+    if (i > 0) { projects.unshift(projects.splice(i, 1)[0]); saveData(); render(); }
+  });
+  const handle = head.querySelector('.drag-handle');
+  handle.addEventListener('dragstart', (e) => {
+    draggedProjectId = p.id;
+    card.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', p.id);
+  });
+  handle.addEventListener('dragend', () => {
+    draggedProjectId = null;
+    card.classList.remove('dragging');
+    document.querySelectorAll('.card.drop-target').forEach(c => c.classList.remove('drop-target'));
+  });
+  card.appendChild(head);
+  card.appendChild(renderMetaRow(p));
+
+  const pads = document.createElement('div');
+  pads.className = 'pads';
+  const padCount = Math.max(total, 1);
+  for (let i = 0; i < padCount; i++) {
+    const pad = document.createElement('div');
+    if (i < total) {
+      const s = displaySteps[i];
+      const origIdx = p.steps.indexOf(s);
+      const t = getType(s.type);
+      const locked = isLocked(p, s);
+      pad.className = 'pad' + (locked ? ' locked' : '');
+      if (s.done) { pad.style.background = t.color; pad.style.borderColor = t.color; }
+      pad.title = locked
+        ? `[${t.label}] ${s.text} — locked, waiting on: ${unmetPrecedents(p, s).map(d => d.text).join(', ')}`
+        : `[${t.label}] ${s.text}`;
+      pad.addEventListener('click', () => {
+        if (isLocked(p, p.steps[origIdx])) {
+          showToast('Locked — finish its prerequisite steps first');
+          return;
+        }
+        p.steps[origIdx].done = !p.steps[origIdx].done;
+        saveData(); render();
+      });
+    } else {
+      pad.className = 'pad empty-slot';
+    }
+    pads.appendChild(pad);
+  }
+  card.appendChild(pads);
+
+  const stepsEl = document.createElement('div');
+  stepsEl.className = 'steps';
+  displaySteps.forEach(s => {
+    const origIdx = p.steps.indexOf(s);
+    const t = getType(s.type);
+    const locked = isLocked(p, s);
+    const unmet = locked ? unmetPrecedents(p, s) : [];
+    const running = !!(activeTimer && activeTimer.stepId === s.id);
+    const logged = stepSeconds(p, s.id);
+    const row = document.createElement('div');
+    row.className = 'step-row';
+    const typeOptions = types.map(tt => `<option value="${tt.id}" ${tt.id===s.type?'selected':''}>${escapeHtml(tt.label)}</option>`).join('');
+    row.innerHTML = `
+      <div class="step-check ${s.done ? 'checked' : ''} ${locked ? 'locked' : ''}" style="${s.done ? `background:${t.color};border-color:${t.color}` : ''}" title="${locked ? 'Locked — finish prerequisite steps first' : ''}"></div>
+      <div class="step-body">
+        <div class="step-toprow">
+          <select class="type-select" style="background:${hexToRgba(t.color, 0.15)};color:${t.color}">${typeOptions}</select>
+          <div class="step-text ${s.done ? 'done' : ''}" contenteditable="true" spellcheck="false">${escapeHtml(s.text)}</div>
+          <button class="dep-btn ${s.dependsOn.length ? 'has-deps' : ''}" title="Set which steps must finish first">Depends on${s.dependsOn.length ? ' (' + s.dependsOn.length + ')' : ''}</button>
+          <button class="step-del">✕</button>
+        </div>
+        ${locked ? `<div class="lock-hint">Waiting on: ${unmet.map(d => escapeHtml(d.text)).join(', ')}</div>` : ''}
+        <div class="step-meta">
+          <button class="timer-btn ${running ? 'running' : ''}">${running ? '■ Stop' : '▶ Start'}</button>
+          <span class="step-time ${running ? 'live' : ''}" data-base="${logged}" title="Time logged on this step — click to open the time log">${fmtDuration(logged)}</span>
+          <label class="due-field ${dueClass(s)}">Due <input type="date" value="${escapeAttr(s.deadline)}"></label>
+        </div>
+      </div>
+    `;
+    row.querySelector('.step-check').addEventListener('click', () => {
+      if (isLocked(p, p.steps[origIdx])) {
+        showToast('Locked — finish its prerequisite steps first');
+        return;
+      }
+      p.steps[origIdx].done = !p.steps[origIdx].done; saveData(); render();
+    });
+    const typeSel = row.querySelector('.type-select');
+    typeSel.addEventListener('change', () => {
+      p.steps[origIdx].type = typeSel.value;
+      lastType = typeSel.value;
+      saveData(); render();
+    });
+    const textEl = row.querySelector('.step-text');
+    textEl.addEventListener('blur', () => {
+      p.steps[origIdx].text = textEl.textContent.trim() || p.steps[origIdx].text;
+      saveData();
+    });
+    row.querySelector('.dep-btn').addEventListener('click', (e) => {
+      openDepPopover(e.currentTarget, p, p.steps[origIdx]);
+    });
+    row.querySelector('.timer-btn').addEventListener('click', () => {
+      if (activeTimer && activeTimer.stepId === s.id) stopTimer(false);
+      else startTimer(p, p.steps[origIdx]);
+    });
+    row.querySelector('.step-time').addEventListener('click', () => openDetails(p.id, 'time'));
+    row.querySelector('.due-field input').addEventListener('change', (e) => {
+      p.steps[origIdx].deadline = e.target.value;
+      saveData(); render();
+    });
+    row.querySelector('.step-del').addEventListener('click', () => {
+      const deletedId = p.steps[origIdx].id;
+      if (activeTimer && activeTimer.stepId === deletedId) stopTimer(true);
+      // keep any logged hours, just detach them from the deleted step
+      p.timeEntries.forEach(te => { if (te.stepId === deletedId) te.stepId = null; });
+      p.steps.splice(origIdx, 1);
+      p.steps.forEach(st => { st.dependsOn = st.dependsOn.filter(id => id !== deletedId); });
+      saveData(); render();
+    });
+    stepsEl.appendChild(row);
+  });
+  card.appendChild(stepsEl);
+
+  const addStep = document.createElement('div');
+  addStep.className = 'add-step';
+  const addTypeOptions = types.map(t => `<option value="${t.id}" ${t.id===lastType?'selected':''}>${escapeHtml(t.label)}</option>`).join('');
+  addStep.innerHTML = `
+    <select class="add-type">${addTypeOptions}</select>
+    <input type="text" placeholder="Add a step...">
+    <button>Add</button>
+  `;
+  const input = addStep.querySelector('input');
+  const typeSelect = addStep.querySelector('.add-type');
+  const addFn = () => {
+    const val = input.value.trim();
+    if (!val) return;
+    lastType = typeSelect.value;
+    p.steps.push({ id: uid('s'), text: val, done: false, type: lastType, dependsOn: [], deadline: '' });
+    input.value = '';
+    saveData(); render();
+  };
+  addStep.querySelector('button').addEventListener('click', addFn);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') addFn(); });
+  card.appendChild(addStep);
+
+  return card;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+document.getElementById('addProjectBtn').addEventListener('click', () => {
+  const name = prompt('Project name:');
+  if (!name || !name.trim()) return;
+  const np = { id: uid('p'), num: seq++, name: name.trim(), notes: '', blocked: false, steps: [] };
+  ensureProjectFields(np);
+  projects.unshift(np);
+  saveData(); render();
+});
+
+document.getElementById('filterSelect').addEventListener('change', e => {
+  filter = e.target.value;
+  render();
+});
+
+typeFilterSelect.addEventListener('change', e => {
+  typeFilter = e.target.value;
+  render();
+});
+
+document.getElementById('hideCompletedToggle').addEventListener('change', e => {
+  hideCompleted = e.target.checked;
+  render();
+});
+
+document.getElementById('tabs').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-view]');
+  if (!btn) return;
+  currentView = btn.dataset.view;
+  render();
+});
+
+document.getElementById('exportBtn').addEventListener('click', () => {
+  const payload = { version: 5, projects, seq, types, exportedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `traveler-backup-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showToast('Exported');
+});
+
+const importFileInput = document.getElementById('importFile');
+document.getElementById('importBtn').addEventListener('click', () => importFileInput.click());
+
+importFileInput.addEventListener('change', () => {
+  const file = importFileInput.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    let parsed;
+    try {
+      parsed = JSON.parse(reader.result);
+    } catch (e) {
+      alert('That file is not valid JSON — could not import it.');
+      importFileInput.value = '';
+      return;
+    }
+    if (!parsed || !Array.isArray(parsed.projects)) {
+      alert("That file doesn't look like a Traveler backup — no projects found in it.");
+      importFileInput.value = '';
+      return;
+    }
+    const syncNote = syncConfigured()
+      ? '\n\nSync is on, so this also replaces the data in your Google Sheet and on your other devices.'
+      : '';
+    const replace = confirm(
+      `Import "${file.name}"?\n\nOK = replace everything currently in Traveler with this file's data.\nCancel = do nothing.${syncNote}`
+    );
+    importFileInput.value = '';
+    if (!replace) return;
+
+    projects = parsed.projects;
+    seq = parsed.seq || (projects.length + 1);
+    types = (parsed.types && parsed.types.length) ? parsed.types : DEFAULT_TYPES.slice();
+    activeTimer = null;
+    projects.forEach(ensureProjectFields);
+    saveData();
+    renderLegendAndFilter();
+    render();
+    showToast('Imported');
+  };
+  reader.onerror = () => alert('Could not read that file.');
+  reader.readAsText(file);
+});
+
+// =====================================================================
+// Timer
+// =====================================================================
+function startTimer(p, step) {
+  if (activeTimer) stopTimer(true);
+  activeTimer = { projectId: p.id, stepId: step.id, start: Date.now() };
+  saveData();
+  render();
+}
+
+function stopTimer(silent) {
+  if (!activeTimer) return;
+  const p = projects.find(x => x.id === activeTimer.projectId);
+  const seconds = Math.round((Date.now() - activeTimer.start) / 1000);
+  if (p && seconds >= 1) {
+    p.timeEntries.push({
+      id: uid('t'),
+      stepId: activeTimer.stepId,
+      date: dateStr(new Date(activeTimer.start)),
+      seconds,
+      note: 'Timer'
+    });
+  }
+  activeTimer = null;
+  saveData();
+  if (!silent) {
+    render();
+    showToast(`Logged ${fmtDuration(seconds)}`);
+  }
+}
+
+function renderTimerBar() {
+  const bar = document.getElementById('timerBar');
+  if (!activeTimer) { bar.classList.remove('on'); bar.innerHTML = ''; return; }
+  const p = projects.find(x => x.id === activeTimer.projectId);
+  const s = p && findStep(p, activeTimer.stepId);
+  bar.classList.add('on');
+  bar.innerHTML = `<span class="pulse"></span>
+    <span>Timing <strong>${escapeHtml(p ? p.name : '')}</strong> — ${escapeHtml(s ? s.text : 'step')}</span>
+    <span class="clock" id="timerClock">00:00:00</span>
+    <button id="timerStopBtn">Stop &amp; log</button>`;
+  bar.querySelector('#timerStopBtn').addEventListener('click', () => stopTimer(false));
+  tickTimer();
+}
+
+function tickTimer() {
+  if (!activeTimer) return;
+  const elapsed = Math.floor((Date.now() - activeTimer.start) / 1000);
+  const clk = document.getElementById('timerClock');
+  if (clk) clk.textContent = fmtClock(elapsed);
+  document.querySelectorAll('.step-time.live').forEach(el => {
+    el.textContent = fmtDuration((Number(el.dataset.base) || 0) + elapsed);
+  });
+}
+setInterval(tickTimer, 1000);
+
+// =====================================================================
+// Project card: stage / ship date / summary chips
+// =====================================================================
+function dueClass(s) {
+  if (!s.deadline || s.done) return '';
+  const d = daysUntil(s.deadline);
+  return d < 0 ? 'overdue' : d <= 2 ? 'soon' : '';
+}
+
+function shipHint(p) {
+  if (!p.shipDate || p.stage === 'shipped') return '';
+  const d = daysUntil(p.shipDate);
+  if (d < 0) return `${-d}d late`;
+  if (d === 0) return 'today';
+  return `in ${d}d`;
+}
+
+function renderMetaRow(p) {
+  const st = getStage(p.stage);
+  const outstanding = partsOutstanding(p).length;
+  const total = p.parts.length;
+  const late = p.shipDate && p.stage !== 'shipped' && daysUntil(p.shipDate) < 0;
+  const row = document.createElement('div');
+  row.className = 'meta-row';
+  row.innerHTML = `
+    <select class="stage-select" style="background:${hexToRgba(st.color, 0.16)};color:${st.color}" title="Project stage">
+      ${STAGES.map(s => `<option value="${s.id}" ${s.id === p.stage ? 'selected' : ''}>${escapeHtml(s.label)}</option>`).join('')}
+    </select>
+    <label class="meta-field ${late ? 'overdue' : ''}">Ship <input type="date" value="${escapeAttr(p.shipDate)}"><span>${shipHint(p)}</span></label>
+    ${total ? `<button class="chip ${outstanding ? 'warn' : ''}" data-open="parts" title="Open parts list">${total - outstanding}/${total} parts in</button>` : ''}
+    <button class="chip" data-open="expenses" title="Parts planned + expenses">${money(projectTotal(p))}</button>
+    <button class="chip" data-open="time" title="Total time logged">${fmtDuration(projectSeconds(p))}</button>
+    <button class="details-btn">Details</button>`;
+  row.querySelector('.stage-select').addEventListener('change', e => { p.stage = e.target.value; saveData(); render(); });
+  row.querySelector('input[type=date]').addEventListener('change', e => { p.shipDate = e.target.value; saveData(); render(); });
+  row.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => openDetails(p.id, b.dataset.open)));
+  row.querySelector('.details-btn').addEventListener('click', () => openDetails(p.id));
+  return row;
+}
+
+// =====================================================================
+// Modal plumbing + project Details modal
+// =====================================================================
+const modalRoot = document.getElementById('modalRoot');
+
+function closeModal() {
+  if (!modalRoot.innerHTML) return;
+  modalRoot.innerHTML = '';
+  modalProjectId = null;
+  render();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && modalRoot.innerHTML) closeModal();
+});
+
+function stepOptions(p, selectedId) {
+  return `<option value="">General (no step)</option>` +
+    p.steps.map(s => `<option value="${s.id}" ${s.id === selectedId ? 'selected' : ''}>${escapeHtml(s.text)}</option>`).join('');
+}
+
+function openDetails(projectId, section) {
+  modalProjectId = projectId;
+  renderDetailsModal(section);
+}
+
+function renderDetailsModal(section, focusSelector) {
+  const p = projects.find(x => x.id === modalProjectId);
+  if (!p) { closeModal(); return; }
+  const prev = modalRoot.querySelector('.modal-backdrop');
+  const prevScroll = prev ? prev.scrollTop : 0;
+
+  const stageOpts = STAGES.map(s => `<option value="${s.id}" ${s.id === p.stage ? 'selected' : ''}>${escapeHtml(s.label)}</option>`).join('');
+  const statusOpts = sel => PART_STATUSES.map(s => `<option value="${s.id}" ${s.id === sel ? 'selected' : ''}>${s.label}</option>`).join('');
+
+  const stepRows = p.steps.length ? p.steps.map(s => `
+    <tr>
+      <td data-label="Step">${s.done ? '<span class="muted">✓ </span>' : ''}${escapeHtml(s.text)}</td>
+      <td data-label="Type">${escapeHtml(getType(s.type).label)}</td>
+      <td data-label="Deadline"><input type="date" data-coll="steps" data-id="${s.id}" data-field="deadline" value="${escapeAttr(s.deadline)}"></td>
+    </tr>`).join('') : `<tr><td colspan="3" class="muted">No steps yet — add some on the project card.</td></tr>`;
+
+  const partRows = p.parts.map(pt => `
+    <tr>
+      <td data-label="Part"><input data-coll="parts" data-id="${pt.id}" data-field="name" value="${escapeAttr(pt.name)}"></td>
+      <td data-label="Qty" class="num" style="width:70px"><input type="number" min="0" step="1" data-coll="parts" data-id="${pt.id}" data-field="qty" value="${pt.qty}"></td>
+      <td data-label="Unit $" class="num" style="width:95px"><input type="number" min="0" step="0.01" data-coll="parts" data-id="${pt.id}" data-field="unitCost" value="${pt.unitCost}"></td>
+      <td data-label="Line" class="num" style="width:90px" data-line="${pt.id}">${money(partLine(pt))}</td>
+      <td data-label="Supplier"><input data-coll="parts" data-id="${pt.id}" data-field="supplier" value="${escapeAttr(pt.supplier)}"></td>
+      <td data-label="Status" style="width:110px"><select data-coll="parts" data-id="${pt.id}" data-field="status">${statusOpts(pt.status)}</select></td>
+      <td data-label="ETA" style="width:140px"><input type="date" data-coll="parts" data-id="${pt.id}" data-field="eta" value="${escapeAttr(pt.eta)}"></td>
+      <td class="row-end" style="width:28px"><button class="row-del" data-act="del-part" data-id="${pt.id}" title="Remove part">✕</button></td>
+    </tr>`).join('');
+
+  const expRows = p.expenses.map(ex => `
+    <tr>
+      <td data-label="Date" style="width:150px"><input type="date" data-coll="expenses" data-id="${ex.id}" data-field="date" value="${escapeAttr(ex.date)}"></td>
+      <td data-label="Description"><input data-coll="expenses" data-id="${ex.id}" data-field="desc" value="${escapeAttr(ex.desc)}"></td>
+      <td data-label="Amount" class="num" style="width:120px"><input type="number" step="0.01" data-coll="expenses" data-id="${ex.id}" data-field="amount" value="${ex.amount}"></td>
+      <td class="row-end" style="width:28px"><button class="row-del" data-act="del-exp" data-id="${ex.id}" title="Remove expense">✕</button></td>
+    </tr>`).join('');
+
+  const timeRows = [...p.timeEntries].reverse().map(te => `
+    <tr>
+      <td data-label="Date" style="width:150px"><input type="date" data-coll="timeEntries" data-id="${te.id}" data-field="date" value="${escapeAttr(te.date)}"></td>
+      <td data-label="Step"><select data-coll="timeEntries" data-id="${te.id}" data-field="stepId">${stepOptions(p, te.stepId)}</select></td>
+      <td data-label="Hours" class="num" style="width:90px"><input type="number" min="0" step="0.05" data-coll="timeEntries" data-id="${te.id}" data-field="hours" value="${(te.seconds / 3600).toFixed(2)}"></td>
+      <td data-label="Note"><input data-coll="timeEntries" data-id="${te.id}" data-field="note" value="${escapeAttr(te.note)}"></td>
+      <td class="row-end" style="width:28px"><button class="row-del" data-act="del-time" data-id="${te.id}" title="Remove entry">✕</button></td>
+    </tr>`).join('');
+
+  modalRoot.innerHTML = `
+  <div class="modal-backdrop">
+    <div class="modal" role="dialog" aria-label="Project details">
+      <div class="modal-head">
+        <h2><span class="tag-id">TR-${String(p.num).padStart(3, '0')}</span> ${escapeHtml(p.name)}</h2>
+        <button class="modal-x" data-act="close" title="Close (Esc)">✕</button>
+      </div>
+      <div class="modal-body">
+
+        <section class="modal-section" data-section="schedule">
+          <h3>Schedule</h3>
+          <div class="sched-row">
+            <label>Stage <select data-coll="project" data-field="stage">${stageOpts}</select></label>
+            <label>Ship date <input type="date" data-coll="project" data-field="shipDate" value="${escapeAttr(p.shipDate)}"></label>
+          </div>
+          <table class="dt">
+            <thead><tr><th>Step</th><th style="width:130px">Type</th><th style="width:160px">Deadline</th></tr></thead>
+            <tbody>${stepRows}</tbody>
+          </table>
+        </section>
+
+        <section class="modal-section" data-section="parts">
+          <h3>Parts <span class="sum" id="sum-parts"></span></h3>
+          ${p.parts.length ? `<table class="dt">
+            <thead><tr><th>Part</th><th class="num">Qty</th><th class="num">Unit $</th><th class="num">Line</th><th>Supplier</th><th>Status</th><th>ETA</th><th></th></tr></thead>
+            <tbody>${partRows}</tbody>
+          </table>` : `<div class="muted">No parts yet. Add what this project needs to order.</div>`}
+          <div class="add-row">
+            <input data-f="name" placeholder="Part name" style="flex:1;min-width:160px">
+            <input data-f="qty" type="number" min="0" step="1" value="1" style="width:70px" title="Quantity">
+            <input data-f="unit" type="number" min="0" step="0.01" placeholder="Unit $" style="width:95px">
+            <input data-f="supplier" placeholder="Supplier" style="width:140px">
+            <button data-act="add-part">Add part</button>
+          </div>
+        </section>
+
+        <section class="modal-section" data-section="expenses">
+          <h3>Expenses <span class="sum" id="sum-exp"></span></h3>
+          ${p.expenses.length ? `<table class="dt">
+            <thead><tr><th>Date</th><th>Description</th><th class="num">Amount</th><th></th></tr></thead>
+            <tbody>${expRows}</tbody>
+          </table>` : `<div class="muted">No expenses yet — shipping, tooling, outside services, anything that isn't a listed part.</div>`}
+          <div class="add-row">
+            <input data-f="date" type="date" value="${todayStr()}">
+            <input data-f="desc" placeholder="Description" style="flex:1;min-width:160px">
+            <input data-f="amount" type="number" step="0.01" placeholder="Amount" style="width:110px">
+            <button data-act="add-exp">Add expense</button>
+          </div>
+        </section>
+
+        <section class="modal-section" data-section="time">
+          <h3>Time log <span class="sum" id="sum-time"></span></h3>
+          ${p.timeEntries.length ? `<table class="dt">
+            <thead><tr><th>Date</th><th>Step</th><th class="num">Hours</th><th>Note</th><th></th></tr></thead>
+            <tbody>${timeRows}</tbody>
+          </table>` : `<div class="muted">No time logged yet. Use ▶ Start on a step, or add an entry below.</div>`}
+          <div class="add-row">
+            <input data-f="date" type="date" value="${todayStr()}">
+            <select data-f="step" style="max-width:220px">${stepOptions(p, null)}</select>
+            <input data-f="hours" type="number" min="0" step="1" placeholder="h" style="width:60px" title="Hours">
+            <input data-f="mins" type="number" min="0" step="5" placeholder="min" style="width:68px" title="Minutes">
+            <input data-f="note" placeholder="Note (optional)" style="flex:1;min-width:140px">
+            <button data-act="add-time">Log time</button>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>`;
+
+  refreshModalTotals();
+  const backdrop = modalRoot.querySelector('.modal-backdrop');
+  if (section) {
+    const el = modalRoot.querySelector(`[data-section="${section}"]`);
+    if (el && el.scrollIntoView) el.scrollIntoView();
+  } else {
+    backdrop.scrollTop = prevScroll;
+  }
+  if (focusSelector) {
+    const fe = modalRoot.querySelector(focusSelector);
+    if (fe) fe.focus();
+  }
+}
+
+function refreshModalTotals() {
+  const p = projects.find(x => x.id === modalProjectId);
+  if (!p) return;
+  const setText = (id, t) => { const el = document.getElementById(id); if (el) el.textContent = t; };
+  setText('sum-parts', `${p.parts.length} part${p.parts.length === 1 ? '' : 's'} · ${money(partsPlanned(p))} planned · ${money(partsOrdered(p))} ordered`);
+  setText('sum-exp', `${money(expensesTotal(p))} · project total ${money(projectTotal(p))}`);
+  setText('sum-time', `${fmtDuration(projectSeconds(p))} logged`);
+  p.parts.forEach(pt => {
+    const el = modalRoot.querySelector(`[data-line="${pt.id}"]`);
+    if (el) el.textContent = money(partLine(pt));
+  });
+}
+
+// Field edits inside the details modal save quietly (no re-render, so tabbing between fields keeps focus).
+modalRoot.addEventListener('change', e => {
+  const t = e.target;
+  if (!t.dataset || !t.dataset.field || !modalProjectId) return;
+  const p = projects.find(x => x.id === modalProjectId);
+  if (!p) return;
+  const coll = t.dataset.coll;
+  const item = coll === 'project' ? p : (p[coll] || []).find(x => x.id === t.dataset.id);
+  if (!item) return;
+  const field = t.dataset.field;
+  if (field === 'hours') item.seconds = Math.max(0, Math.round((parseFloat(t.value) || 0) * 3600));
+  else if (field === 'stepId') item.stepId = t.value || null;
+  else if (t.type === 'number') item[field] = parseFloat(t.value) || 0;
+  else item[field] = t.value;
+  saveData();
+  refreshModalTotals();
+});
+
+modalRoot.addEventListener('click', e => {
+  const t = e.target;
+  if (t.classList.contains('modal-backdrop')) { closeModal(); return; }
+  const actEl = t.closest('[data-act]');
+  if (!actEl) return;
+  const act = actEl.dataset.act;
+  if (act === 'close') { closeModal(); return; }
+  const p = projects.find(x => x.id === modalProjectId);
+  if (!p) return;
+  const row = actEl.closest('.add-row');
+  const f = name => row && row.querySelector(`[data-f="${name}"]`);
+  let focusSel = null;
+
+  if (act === 'del-part') p.parts = p.parts.filter(x => x.id !== actEl.dataset.id);
+  else if (act === 'del-exp') p.expenses = p.expenses.filter(x => x.id !== actEl.dataset.id);
+  else if (act === 'del-time') p.timeEntries = p.timeEntries.filter(x => x.id !== actEl.dataset.id);
+  else if (act === 'add-part') {
+    const name = f('name').value.trim();
+    if (!name) { showToast('Give the part a name'); return; }
+    p.parts.push({
+      id: uid('pt'), name,
+      qty: parseFloat(f('qty').value) || 1,
+      unitCost: parseFloat(f('unit').value) || 0,
+      supplier: f('supplier').value.trim(),
+      status: 'needed', eta: ''
+    });
+    focusSel = '[data-section="parts"] .add-row [data-f="name"]';
+  } else if (act === 'add-exp') {
+    const amount = parseFloat(f('amount').value);
+    if (isNaN(amount)) { showToast('Enter an amount'); return; }
+    p.expenses.push({ id: uid('x'), date: f('date').value || todayStr(), desc: f('desc').value.trim() || 'Expense', amount });
+    focusSel = '[data-section="expenses"] .add-row [data-f="desc"]';
+  } else if (act === 'add-time') {
+    const seconds = Math.round((parseFloat(f('hours').value) || 0) * 3600 + (parseFloat(f('mins').value) || 0) * 60);
+    if (seconds <= 0) { showToast('Enter hours and/or minutes'); return; }
+    p.timeEntries.push({ id: uid('t'), stepId: f('step').value || null, date: f('date').value || todayStr(), seconds, note: f('note').value.trim() });
+    focusSel = '[data-section="time"] .add-row [data-f="hours"]';
+  } else {
+    return;
+  }
+  saveData();
+  renderDetailsModal(null, focusSel);
+});
+
+modalRoot.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || e.target.tagName !== 'INPUT') return;
+  const row = e.target.closest('.add-row');
+  if (!row) return;
+  const btn = row.querySelector('button[data-act]');
+  if (btn) { e.preventDefault(); btn.click(); }
+});
+
+// =====================================================================
+// Pipeline view: what is waiting on what
+// =====================================================================
+function nameCounts(items) {
+  const counts = new Map();
+  items.forEach(x => counts.set(x.p.name, (counts.get(x.p.name) || 0) + 1));
+  return [...counts].map(([n, c]) => c > 1 ? `${escapeHtml(n)} (${c})` : escapeHtml(n)).join(', ');
+}
+
+function setPartStatus(pid, ptid, status) {
+  const p = projects.find(x => x.id === pid);
+  const pt = p && p.parts.find(x => x.id === ptid);
+  if (!pt) return;
+  pt.status = status;
+  saveData();
+  render();
+}
+
+function renderPipelineView() {
+  contentEl.className = '';
+  const allParts = [];
+  projects.forEach(p => p.parts.forEach(pt => allParts.push({ p, pt })));
+  const toOrder = allParts.filter(x => x.pt.status === 'needed');
+  const inTransit = allParts.filter(x => x.pt.status === 'ordered' || x.pt.status === 'shipped');
+  inTransit.sort((a, b) => (a.pt.eta || '9999') < (b.pt.eta || '9999') ? -1 : 1);
+  const lateParts = inTransit.filter(x => x.pt.eta && daysUntil(x.pt.eta) < 0);
+  const assembly = projects.filter(p => p.stage === 'assembly').map(p => ({ p }));
+  const testing = projects.filter(p => p.stage === 'testing').map(p => ({ p }));
+  const shipSoon = projects.filter(p => p.shipDate && p.stage !== 'shipped' && daysUntil(p.shipDate) <= 14).map(p => ({ p }));
+  const lateShips = shipSoon.filter(x => daysUntil(x.p.shipDate) < 0);
+
+  const tile = (num, label, color, names, flag) => `
+    <div class="tile" style="--tile-color:${color}">
+      <div class="tile-num">${num}</div>
+      <div class="tile-label">${label}</div>
+      ${flag ? `<div class="tile-flag">${flag}</div>` : ''}
+      <div class="tile-names">${names || '<span style="color:#a3b0ba">None</span>'}</div>
+    </div>`;
+
+  const tiles = `<div class="tiles">
+    ${tile(toOrder.length, 'Parts to order', '#c99a3a', nameCounts(toOrder))}
+    ${tile(inTransit.length, 'Parts in transit', '#46708a', nameCounts(inTransit), lateParts.length ? `${lateParts.length} past ETA` : '')}
+    ${tile(assembly.length, 'Awaiting assembly', '#7a5473', nameCounts(assembly))}
+    ${tile(testing.length, 'Awaiting testing', '#bf6a35', nameCounts(testing))}
+    ${tile(shipSoon.length, 'Shipping within 14 days', '#3f8078', nameCounts(shipSoon), lateShips.length ? `${lateShips.length} late` : '')}
+  </div>`;
+
+  const miniCard = p => {
+    const out = partsOutstanding(p).length;
+    const doneSteps = p.steps.filter(s => s.done).length;
+    const late = p.shipDate && p.stage !== 'shipped' && daysUntil(p.shipDate) < 0;
+    return `<div class="mini">
+      <button class="link-btn mini-title" data-open="schedule" data-pid="${p.id}">TR-${String(p.num).padStart(3, '0')} · ${escapeHtml(p.name)}</button>
+      <div class="mini-meta">
+        <span>${doneSteps}/${p.steps.length} steps</span>
+        ${p.parts.length ? `<span>${p.parts.length - out}/${p.parts.length} parts in</span>` : ''}
+        ${p.shipDate ? `<span class="${late ? 'overdue-txt' : ''}">ship ${escapeHtml(fmtNiceDate(p.shipDate))}${shipHint(p) ? ' · ' + shipHint(p) : ''}</span>` : ''}
+      </div>
+      <div class="mini-actions">
+        <select data-stage-move="${p.id}" title="Move to stage">
+          ${STAGES.map(s => `<option value="${s.id}" ${s.id === p.stage ? 'selected' : ''}>${escapeHtml(s.label)}</option>`).join('')}
+        </select>
+      </div>
+    </div>`;
+  };
+
+  const board = `<div class="board">${STAGES.map(st => {
+    const list = projects.filter(p => p.stage === st.id);
+    return `<div class="col" style="--col-color:${st.color}">
+      <div class="col-head"><span>${escapeHtml(st.label)}</span><span>${list.length}</span></div>
+      ${list.length ? list.map(miniCard).join('') : '<div class="col-empty">Nothing here</div>'}
+    </div>`;
+  }).join('')}</div>`;
+
+  const projLink = p => `<button class="link-btn" data-open="parts" data-pid="${p.id}">${escapeHtml(p.name)}</button>`;
+
+  const orderPanel = `<div class="panel">
+    <h3>Parts to order <span class="sum">${toOrder.length} item${toOrder.length === 1 ? '' : 's'} · ${money(toOrder.reduce((a, x) => a + partLine(x.pt), 0))}</span></h3>
+    ${toOrder.length ? `<table class="dt stack">
+      <thead><tr><th>Project</th><th>Part</th><th class="num">Qty</th><th class="num">Est. cost</th><th>Supplier</th><th></th></tr></thead>
+      <tbody>${toOrder.map(x => `<tr>
+        <td data-label="Project">${projLink(x.p)}</td><td data-label="Part">${escapeHtml(x.pt.name)}</td>
+        <td data-label="Qty" class="num">${x.pt.qty}</td><td data-label="Est. cost" class="num">${money(partLine(x.pt))}</td>
+        <td data-label="Supplier">${escapeHtml(x.pt.supplier)}</td>
+        <td class="num"><button class="mini-btn" data-pact="ordered" data-pid="${x.p.id}" data-ptid="${x.pt.id}">Mark ordered</button></td>
+      </tr>`).join('')}</tbody>
+    </table>` : `<div class="muted">Nothing waiting to be ordered.</div>`}
+  </div>`;
+
+  const transitPanel = `<div class="panel">
+    <h3>Parts in transit <span class="sum">${inTransit.length} item${inTransit.length === 1 ? '' : 's'}</span></h3>
+    ${inTransit.length ? `<table class="dt stack">
+      <thead><tr><th>Project</th><th>Part</th><th class="num">Qty</th><th>Status</th><th>ETA</th><th></th></tr></thead>
+      <tbody>${inTransit.map(x => {
+        const late = x.pt.eta && daysUntil(x.pt.eta) < 0;
+        return `<tr>
+          <td data-label="Project">${projLink(x.p)}</td><td data-label="Part">${escapeHtml(x.pt.name)}</td>
+          <td data-label="Qty" class="num">${x.pt.qty}</td>
+          <td data-label="Status">${x.pt.status === 'shipped' ? 'Shipped' : 'Ordered'}</td>
+          <td data-label="ETA"><input type="date" data-eta data-pid="${x.p.id}" data-ptid="${x.pt.id}" value="${escapeAttr(x.pt.eta)}">${late ? ` <span class="overdue-txt">${-daysUntil(x.pt.eta)}d late</span>` : ''}</td>
+          <td class="num" style="white-space:nowrap">
+            ${x.pt.status === 'ordered' ? `<button class="mini-btn" data-pact="shipped" data-pid="${x.p.id}" data-ptid="${x.pt.id}">Shipped</button> ` : ''}
+            <button class="mini-btn" data-pact="delivered" data-pid="${x.p.id}" data-ptid="${x.pt.id}">Delivered</button>
+          </td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>` : `<div class="muted">No parts on the way.</div>`}
+  </div>`;
+
+  contentEl.innerHTML = tiles + board + `<div class="two-col">${orderPanel}${transitPanel}</div>`;
+}
+
+// =====================================================================
+// Calendar view: ship dates, step deadlines, part ETAs
+// =====================================================================
+const EV_LABEL = { ship: 'SHIP', due: 'DUE', eta: 'ETA' };
+const EV_SECTION = { ship: 'schedule', due: 'schedule', eta: 'parts' };
+const EV_ORDER = { ship: 0, due: 1, eta: 2 };
+
+function eventsByDate() {
+  const map = {};
+  const add = (date, ev) => { if (date) (map[date] = map[date] || []).push(ev); };
+  projects.forEach(p => {
+    add(p.shipDate, {
+      kind: 'ship', pid: p.id, text: p.name,
+      done: p.stage === 'shipped', overdue: p.stage !== 'shipped' && daysUntil(p.shipDate) < 0
+    });
+    p.steps.forEach(s => add(s.deadline, {
+      kind: 'due', pid: p.id, text: `${p.name}: ${s.text}`,
+      done: s.done, overdue: !s.done && daysUntil(s.deadline) < 0
+    }));
+    p.parts.forEach(pt => {
+      if (pt.status !== 'delivered') add(pt.eta, {
+        kind: 'eta', pid: p.id, text: `${pt.name} (${p.name})`,
+        done: false, overdue: daysUntil(pt.eta) < 0
+      });
+    });
+  });
+  Object.values(map).forEach(list => list.sort((a, b) => EV_ORDER[a.kind] - EV_ORDER[b.kind]));
+  return map;
+}
+
+function renderCalendarView() {
+  contentEl.className = '';
+  const events = eventsByDate();
+  const first = new Date(calYear, calMonth, 1);
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const weeks = Math.ceil((first.getDay() + daysInMonth) / 7);
+  const start = new Date(calYear, calMonth, 1 - first.getDay());
+  const today = todayStr();
+  const monthLabel = first.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+
+  let cells = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(n => `<div class="cal-dow">${n}</div>`).join('');
+  for (let i = 0; i < weeks * 7; i++) {
+    const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+    const ds = dateStr(d);
+    const evs = events[ds] || [];
+    const chips = evs.slice(0, 3).map(ev => `<span class="chip-ev ev-${ev.kind} ${ev.done ? 'done' : ''} ${ev.overdue ? 'overdue' : ''}"
+        data-ev-pid="${ev.pid}" data-ev-section="${EV_SECTION[ev.kind]}"
+        title="${escapeAttr(EV_LABEL[ev.kind] + ' · ' + ev.text)}">${EV_LABEL[ev.kind]} · ${escapeHtml(ev.text)}</span>`).join('');
+    cells += `<div class="cal-day ${d.getMonth() !== calMonth ? 'other' : ''} ${ds === today ? 'today' : ''}" data-day="${ds}">
+      <span class="cal-num">${d.getDate()}</span>${chips}${evs.length > 3 ? `<div class="ev-more">+${evs.length - 3} more</div>` : ''}
+    </div>`;
+  }
+
+  const upcoming = [];
+  Object.keys(events).forEach(ds => {
+    if (daysUntil(ds) <= 30) events[ds].forEach(ev => { if (!ev.done) upcoming.push({ ds, ev }); });
+  });
+  upcoming.sort((a, b) => a.ds < b.ds ? -1 : a.ds > b.ds ? 1 : EV_ORDER[a.ev.kind] - EV_ORDER[b.ev.kind]);
+
+  const upRows = upcoming.slice(0, 40).map(({ ds, ev }) => {
+    const dd = daysUntil(ds);
+    const when = dd < 0 ? `<span class="overdue-txt">${-dd}d overdue</span>` : dd === 0 ? 'today' : `in ${dd}d`;
+    return `<tr>
+      <td style="width:120px">${escapeHtml(fmtNiceDate(ds))}</td>
+      <td style="width:70px"><span class="up-kind">${EV_LABEL[ev.kind]}</span></td>
+      <td><button class="link-btn" data-open="${EV_SECTION[ev.kind]}" data-pid="${ev.pid}">${escapeHtml(ev.text)}</button></td>
+      <td class="num" style="width:110px">${when}</td>
+    </tr>`;
+  }).join('');
+
+  contentEl.innerHTML = `
+    <div class="cal-head">
+      <button class="cal-btn" data-cal="prev">‹</button>
+      <h2>${escapeHtml(monthLabel)}</h2>
+      <button class="cal-btn" data-cal="today">Today</button>
+      <button class="cal-btn" data-cal="next">›</button>
+      <div class="cal-key">
+        <span style="--k:#bf6a35;--kbg:#f3e2d1">Ship date</span>
+        <span style="--k:#223142;--kbg:#edf0f2">Step deadline</span>
+        <span style="--k:#c99a3a;--kbg:#f6ecd3">Part ETA</span>
+      </div>
+    </div>
+    <div class="cal-grid">${cells}</div>
+    <div class="panel">
+      <h3>Coming up <span class="sum">overdue + next 30 days · click any day above to set a date</span></h3>
+      ${upcoming.length ? `<table class="dt upcoming"><tbody>${upRows}</tbody></table>` : `<div class="muted">Nothing scheduled. Click a day on the calendar, or set ship dates and step deadlines on the project cards.</div>`}
+    </div>`;
+}
+
+function openDayModal(ds) {
+  modalProjectId = null;
+  const evs = eventsByDate()[ds] || [];
+  const projOpts = projects.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
+  modalRoot.innerHTML = `
+  <div class="modal-backdrop">
+    <div class="modal narrow" role="dialog" aria-label="Day">
+      <div class="modal-head">
+        <h2>${escapeHtml(fmtNiceDate(ds))}</h2>
+        <button class="modal-x" data-act="close" title="Close (Esc)">✕</button>
+      </div>
+      <div class="modal-body">
+        <section class="modal-section">
+          <h3>On this day</h3>
+          ${evs.length ? `<ul class="day-events">${evs.map(ev => `<li data-day-open="${ev.pid}" data-day-section="${EV_SECTION[ev.kind]}"><strong class="up-kind">${EV_LABEL[ev.kind]}</strong> ${escapeHtml(ev.text)}${ev.done ? ' <span class="muted">(done)</span>' : ''}</li>`).join('')}</ul>` : '<div class="muted">Nothing scheduled.</div>'}
+        </section>
+        <section class="modal-section">
+          <h3>Set a date here</h3>
+          <div class="form-grid">
+            <label>Set</label>
+            <select id="dayWhat"><option value="ship">Project ship date</option><option value="due">Step deadline</option></select>
+            <label>Project</label>
+            <select id="dayProject">${projOpts}</select>
+            <label id="dayStepLabel" style="display:none">Step</label>
+            <select id="dayStep" style="display:none"></select>
+          </div>
+          <button class="modal-primary" id="daySave">Set date</button>
+        </section>
+      </div>
+    </div>
+  </div>`;
+
+  const what = modalRoot.querySelector('#dayWhat');
+  const proj = modalRoot.querySelector('#dayProject');
+  const stepSel = modalRoot.querySelector('#dayStep');
+  const stepLabel = modalRoot.querySelector('#dayStepLabel');
+  const fillSteps = () => {
+    const p = projects.find(x => x.id === proj.value);
+    stepSel.innerHTML = p && p.steps.length
+      ? p.steps.map(s => `<option value="${s.id}">${escapeHtml(s.text)}${s.done ? ' (done)' : ''}</option>`).join('')
+      : '<option value="">No steps in this project</option>';
+  };
+  const sync = () => {
+    const due = what.value === 'due';
+    stepLabel.style.display = stepSel.style.display = due ? '' : 'none';
+    if (due) fillSteps();
+  };
+  what.addEventListener('change', sync);
+  proj.addEventListener('change', sync);
+
+  modalRoot.querySelector('#daySave').addEventListener('click', () => {
+    const p = projects.find(x => x.id === proj.value);
+    if (!p) return;
+    if (what.value === 'ship') {
+      p.shipDate = ds;
+    } else {
+      const s = stepSel.value && findStep(p, stepSel.value);
+      if (!s) { showToast('Pick a step (add steps on the project card first)'); return; }
+      s.deadline = ds;
+    }
+    saveData();
+    closeModal();
+    showToast('Date set');
+  });
+  modalRoot.querySelectorAll('[data-day-open]').forEach(li => {
+    li.addEventListener('click', () => openDetails(li.dataset.dayOpen, li.dataset.daySection));
+  });
+}
+
+// ---- delegated handlers for the Pipeline and Calendar views ----
+contentEl.addEventListener('click', e => {
+  const open = e.target.closest('[data-open][data-pid]');
+  if (open) { openDetails(open.dataset.pid, open.dataset.open); return; }
+  const pact = e.target.closest('[data-pact]');
+  if (pact) { setPartStatus(pact.dataset.pid, pact.dataset.ptid, pact.dataset.pact); return; }
+  const cal = e.target.closest('[data-cal]');
+  if (cal) {
+    const act = cal.dataset.cal;
+    if (act === 'prev') { calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } }
+    else if (act === 'next') { calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } }
+    else { const n = new Date(); calYear = n.getFullYear(); calMonth = n.getMonth(); }
+    render();
+    return;
+  }
+  const chip = e.target.closest('[data-ev-pid]');
+  if (chip) { openDetails(chip.dataset.evPid, chip.dataset.evSection); return; }
+  const day = e.target.closest('[data-day]');
+  if (day) openDayModal(day.dataset.day);
+});
+
+contentEl.addEventListener('change', e => {
+  const t = e.target;
+  if (t.hasAttribute && t.hasAttribute('data-eta')) {
+    const p = projects.find(x => x.id === t.dataset.pid);
+    const pt = p && p.parts.find(x => x.id === t.dataset.ptid);
+    if (pt) { pt.eta = t.value; saveData(); render(); }
+  } else if (t.dataset && t.dataset.stageMove) {
+    const p = projects.find(x => x.id === t.dataset.stageMove);
+    if (p) { p.stage = t.value; saveData(); render(); }
+  }
+});
+
+// =====================================================================
+// Costs & Time view
+// =====================================================================
+function csvCell(v) {
+  const s = String(v == null ? '' : v);
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+function exportCostsCsv() {
+  const lines = [['Project', 'Stage', 'Ship date', 'Steps done', 'Steps total', 'Parts planned', 'Parts ordered or later', 'Expenses', 'Total cost', 'Hours logged'].join(',')];
+  projects.forEach(p => {
+    lines.push([
+      `TR-${String(p.num).padStart(3, '0')} ${p.name}`, getStage(p.stage).label, p.shipDate,
+      p.steps.filter(s => s.done).length, p.steps.length,
+      partsPlanned(p).toFixed(2), partsOrdered(p).toFixed(2), expensesTotal(p).toFixed(2),
+      projectTotal(p).toFixed(2), (projectSeconds(p) / 3600).toFixed(2)
+    ].map(csvCell).join(','));
+  });
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `traveler-costs-${todayStr()}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showToast('Exported CSV');
+}
+
+function renderCostsView() {
+  contentEl.className = '';
+  const rows = projects.map(p => ({
+    p,
+    planned: partsPlanned(p),
+    exp: expensesTotal(p),
+    total: projectTotal(p),
+    spent: projectSpent(p),
+    secs: projectSeconds(p),
+    done: p.steps.filter(s => s.done).length
+  }));
+  const sum = k => rows.reduce((a, r) => a + r[k], 0);
+
+  const body = rows.map(r => `<tr>
+    <td><button class="link-btn" data-open="expenses" data-pid="${r.p.id}">TR-${String(r.p.num).padStart(3, '0')} · ${escapeHtml(r.p.name)}</button></td>
+    <td>${escapeHtml(getStage(r.p.stage).label)}</td>
+    <td class="num">${r.done}/${r.p.steps.length}</td>
+    <td class="num">${money(r.planned)}</td>
+    <td class="num">${money(r.exp)}</td>
+    <td class="num"><strong>${money(r.total)}</strong></td>
+    <td class="num">${money(r.spent)}</td>
+    <td class="num"><button class="link-btn" data-open="time" data-pid="${r.p.id}">${fmtDuration(r.secs)}</button></td>
+  </tr>`).join('');
+
+  const byType = new Map();
+  let general = 0;
+  projects.forEach(p => p.timeEntries.forEach(te => {
+    const s = te.stepId && findStep(p, te.stepId);
+    if (s) byType.set(s.type, (byType.get(s.type) || 0) + te.seconds);
+    else general += te.seconds;
+  }));
+  const typeRows = types.filter(t => byType.get(t.id) > 0).map(t => {
+    const secs = byType.get(t.id);
+    return `<tr><td><span class="dot" style="background:${t.color}"></span> ${escapeHtml(t.label)}</td>
+      <td class="num">${fmtDuration(secs)}</td><td class="num">${(secs / 3600).toFixed(1)} h</td></tr>`;
+  }).join('') + (general > 0 ? `<tr><td>General (no step)</td><td class="num">${fmtDuration(general)}</td><td class="num">${(general / 3600).toFixed(1)} h</td></tr>` : '');
+  const allSecs = sum('secs');
+
+  contentEl.innerHTML = `
+    <div class="panel">
+      <h3>Cost &amp; time by project <button class="mini-btn" id="csvBtn">Export CSV</button></h3>
+      <table class="dt">
+        <thead><tr>
+          <th>Project</th><th>Stage</th><th class="num">Steps</th>
+          <th class="num" title="Every listed part, qty × unit cost">Parts (planned)</th>
+          <th class="num">Expenses</th><th class="num">Total</th>
+          <th class="num" title="Parts already ordered or later, plus expenses">Spent so far</th>
+          <th class="num">Time</th>
+        </tr></thead>
+        <tbody>${body}</tbody>
+        <tfoot><tr>
+          <td>All projects</td><td></td><td></td>
+          <td class="num">${money(sum('planned'))}</td><td class="num">${money(sum('exp'))}</td>
+          <td class="num">${money(sum('total'))}</td><td class="num">${money(sum('spent'))}</td>
+          <td class="num">${fmtDuration(allSecs)}</td>
+        </tr></tfoot>
+      </table>
+      <div class="muted" style="margin-top:10px">Total = every part (qty × unit cost) plus expenses. Spent so far counts only parts already ordered, shipped or delivered.</div>
+    </div>
+    <div class="panel" style="max-width:520px">
+      <h3>Time by work type <span class="sum">${fmtDuration(allSecs)} logged</span></h3>
+      ${typeRows ? `<table class="dt"><thead><tr><th>Type</th><th class="num">Time</th><th class="num">Hours</th></tr></thead><tbody>${typeRows}</tbody></table>`
+                 : `<div class="muted">No time logged yet. Hit ▶ Start on a step to begin.</div>`}
+    </div>`;
+  contentEl.querySelector('#csvBtn').addEventListener('click', exportCostsCsv);
+}
+
+// =====================================================================
+// Sync with Google Sheets (via the Apps Script web app in traveler-sync.gs)
+// =====================================================================
+function loadSyncSettings() {
+  try {
+    const raw = localStorage.getItem(SYNC_CFG_KEY);
+    if (raw) syncCfg = Object.assign({ url: '', secret: '' }, JSON.parse(raw));
+  } catch (e) { /* keep defaults */ }
+  syncStatus = { state: syncConfigured() ? 'idle' : 'off', message: '' };
+}
+
+function saveSyncSettings() {
+  try { localStorage.setItem(SYNC_CFG_KEY, JSON.stringify(syncCfg)); }
+  catch (e) { showToast('Could not save the sync settings on this device'); }
+}
+
+function syncConfigured() { return !!(syncCfg.url && syncCfg.secret); }
+function pendingCount() { return Object.keys(sync.dirty).length + sync.tombstones.length + (sync.metaDirty ? 1 : 0); }
+
+// Shared settings merge: types are a union, the counter takes the larger value,
+// and the order comes from whichever side changed most recently.
+function normMeta(m) {
+  return { updatedAt: Number(m.updatedAt) || 0, types: m.types || [], seq: Number(m.seq) || 0, order: m.order || [] };
+}
+function mergeMeta(a, b) {
+  const bNewer = (Number(b.updatedAt) || 0) > (Number(a.updatedAt) || 0);
+  const newer = bNewer ? b : a;
+  const older = bNewer ? a : b;
+  const seen = new Set();
+  const merged = [];
+  (newer.types || []).concat(older.types || []).forEach(t => {
+    if (!seen.has(t.id)) { seen.add(t.id); merged.push(t); }
+  });
+  return { updatedAt: Number(newer.updatedAt) || 0, types: merged, seq: Math.max(Number(a.seq) || 0, Number(b.seq) || 0), order: newer.order || [] };
+}
+function sameMeta(a, b) { return JSON.stringify(normMeta(a)) === JSON.stringify(normMeta(b)); }
+
+async function callBackend(body) {
+  const payload = JSON.stringify(body);
+  const ctrl = new AbortController();
+  const timeout = setTimeout(() => ctrl.abort(), 30000);
+  let res;
+  try {
+    // A plain-text POST avoids a CORS preflight, which Apps Script cannot answer.
+    res = await fetch(syncCfg.url, { method: 'POST', body: payload, signal: ctrl.signal, redirect: 'follow' });
+  } catch (e) {
+    const err = new Error(navigator.onLine === false ? 'No connection — changes are saved on this device and will sync later.' : 'Could not reach the sync service. Check your connection and the Web app URL.');
+    err.offline = true;
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+  }
+  const text = await res.text();
+  let json;
+  try { json = JSON.parse(text); }
+  catch (e) { throw new Error('The sync service sent an unexpected reply. Check the Web app URL, and that "Who has access" is set to Anyone.'); }
+  if (!json.ok) throw new Error(json.error || 'Sync failed.');
+  return json;
+}
+
+function scheduleSync() {
+  if (!syncConfigured() || !pendingCount()) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => syncNow(), 1500);
+}
+
+function markAllDirty() {
+  projects.forEach(p => { sync.dirty[p.id] = true; });
+  sync.metaDirty = true;
+}
+
+async function syncNow(manual) {
+  if (!syncConfigured()) return null;
+  if (syncing) { syncAgain = true; return null; }
+  syncing = true;
+  clearTimeout(syncTimer);
+  syncStatus = { state: 'syncing', message: '' };
+  renderSyncButton();
+  try {
+    const push = [];
+    const sent = {};
+    Object.keys(sync.dirty).forEach(id => {
+      const p = projects.find(x => x.id === id);
+      if (!p) { delete sync.dirty[id]; return; }
+      push.push({ id, updatedAt: p.updatedAt, deleted: false, data: p });
+      sent[id] = p.updatedAt;
+    });
+    const sentTombs = sync.tombstones.slice();
+    sentTombs.forEach(t => push.push({ id: t.id, updatedAt: t.updatedAt, deleted: true }));
+    const sentMeta = sync.metaDirty ? metaUpdatedAt : null;
+
+    const resp = await callBackend({
+      secret: syncCfg.secret, since: sync.rev, projects: push,
+      meta: sync.metaDirty ? currentMeta() : null
+    });
+
+    // The sheet was emptied or replaced since we last synced: start over and send everything.
+    if (resp.rev < sync.rev) {
+      sync.rev = 0;
+      markAllDirty();
+      persist();
+      syncAgain = true;
+      return null;
+    }
+
+    // Clear "needs sending" only for what did not change while the request was out.
+    Object.keys(sent).forEach(id => {
+      const p = projects.find(x => x.id === id);
+      if (!p || p.updatedAt === sent[id]) delete sync.dirty[id];
+    });
+    sync.tombstones = sync.tombstones.filter(t => !sentTombs.some(s => s.id === t.id && s.updatedAt === t.updatedAt));
+    if (sentMeta !== null && metaUpdatedAt === sentMeta) sync.metaDirty = false;
+
+    const changed = applyRemote(resp);
+    sync.rev = resp.rev;
+    sync.lastSyncAt = Date.now();
+    syncStatus = { state: 'ok', message: '' };
+    persist();
+    renderSyncButton();
+    if (changed) renderAfterRemote();
+    if (manual) showToast(changed ? 'Synced — new changes pulled in' : 'Synced');
+    return { changed, pushed: push.length, pulled: (resp.projects || []).length };
+  } catch (err) {
+    syncStatus = { state: err.offline ? 'offline' : 'error', message: err.message };
+    renderSyncButton();
+    if (manual) showToast(err.message);
+    return null;
+  } finally {
+    syncing = false;
+    if (syncAgain) { syncAgain = false; scheduleSync(); }
+  }
+}
+
+function stateSig() {
+  return JSON.stringify([projects.map(p => [p.id, p.updatedAt]), types, seq]);
+}
+
+// Merge what the sheet sent back. A project from the sheet replaces ours only if it is newer.
+function applyRemote(resp) {
+  const before = stateSig();
+  const localMeta = currentMeta();
+
+  (resp.projects || []).forEach(rp => {
+    const idx = projects.findIndex(p => p.id === rp.id);
+    const local = idx >= 0 ? projects[idx] : null;
+    if (local && (local.updatedAt || 0) >= rp.updatedAt) return;       // ours is as new or newer
+    if (rp.deleted) {
+      if (local) {
+        projects.splice(idx, 1);
+        delete sync.dirty[rp.id];
+        if (activeTimer && activeTimer.projectId === rp.id) activeTimer = null;
+      }
+      return;
+    }
+    const np = rp.data;
+    np.updatedAt = rp.updatedAt;
+    ensureProjectFields(np);
+    if (local) projects[idx] = np; else projects.unshift(np);
+    delete sync.dirty[rp.id];
+  });
+
+  if (resp.meta) {
+    const merged = mergeMeta(localMeta, resp.meta);
+    if (merged.types.length) types = merged.types;
+    seq = Math.max(seq, merged.seq);
+    metaUpdatedAt = merged.updatedAt;
+    if (!sameMeta(merged, resp.meta)) sync.metaDirty = true;           // we know something the sheet does not
+    const pos = new Map(merged.order.map((id, i) => [id, i]));
+    const known = projects.filter(p => pos.has(p.id)).sort((a, b) => pos.get(a.id) - pos.get(b.id));
+    projects = projects.filter(p => !pos.has(p.id)).concat(known);
+  }
+
+  // Two devices can hand out the same TR number while offline; give the later project a new one.
+  const seen = new Set();
+  let renumbered = false;
+  [...projects].sort((a, b) => (a.id < b.id ? -1 : 1)).forEach(p => {
+    if (seen.has(p.num)) {
+      p.num = seq++;
+      p.updatedAt = Math.max(Date.now(), (p.updatedAt || 0) + 1);
+      sync.dirty[p.id] = true;
+      renumbered = true;
+    } else {
+      seen.add(p.num);
+    }
+  });
+  if (renumbered) { metaUpdatedAt = Math.max(Date.now(), metaUpdatedAt + 1); sync.metaDirty = true; }
+
+  if (activeTimer && !projects.some(p => p.id === activeTimer.projectId)) activeTimer = null;
+  if (!types.some(t => t.id === lastType)) lastType = types[0].id;
+  rebuildSnapshots();
+  return stateSig() !== before;
+}
+
+// Don't redraw the page under someone who is typing; wait until they leave the field.
+function isEditing() {
+  const a = document.activeElement;
+  if (!a || a === document.body) return false;
+  return a.isContentEditable || ['INPUT', 'SELECT', 'TEXTAREA'].includes(a.tagName);
+}
+
+function renderAfterRemote() {
+  if (isEditing()) { pendingRender = true; return; }
+  doRemoteRender();
+}
+
+function doRemoteRender() {
+  pendingRender = false;
+  renderLegendAndFilter();
+  render();
+  if (modalProjectId && modalRoot.innerHTML) {
+    if (projects.some(p => p.id === modalProjectId)) renderDetailsModal(null);
+    else closeModal();
+  }
+}
+
+document.addEventListener('focusout', () => {
+  if (!pendingRender) return;
+  setTimeout(() => { if (pendingRender && !isEditing()) doRemoteRender(); }, 250);
+});
+
+function renderSyncButton() {
+  const btn = document.getElementById('syncBtn');
+  if (!btn) return;
+  btn.classList.remove('ok', 'warn', 'busy');
+  if (!syncConfigured()) {
+    btn.textContent = '☁ Set up sync';
+    btn.title = 'Keep your data in a Google Sheet so Traveler works on your phone and other computers';
+    return;
+  }
+  const n = pendingCount();
+  const waiting = n ? ` · ${n} waiting` : '';
+  if (syncStatus.state === 'syncing') {
+    btn.textContent = '⟳ Syncing…';
+    btn.classList.add('busy');
+    btn.title = '';
+  } else if (syncStatus.state === 'offline' || syncStatus.state === 'error') {
+    btn.textContent = (syncStatus.state === 'offline' ? '⚠ Offline' : '⚠ Sync problem') + waiting;
+    btn.classList.add('warn');
+    btn.title = syncStatus.message + ' Click to try again.';
+  } else if (sync.lastSyncAt) {
+    const t = new Date(sync.lastSyncAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    btn.textContent = `✓ Synced ${t}${waiting}`;
+    btn.classList.add('ok');
+    btn.title = 'Click to sync now';
+  } else {
+    btn.textContent = '☁ Not synced yet' + waiting;
+    btn.title = 'Click to sync now';
+  }
+}
+
+// ---- settings dialog ----
+const URL_PATTERN = /^https:\/\/script\.google\.com\/(a\/macros\/[^/]+\/|macros\/)s\/[^/]+\/exec$/;
+
+function openSyncSettings() {
+  modalProjectId = null;
+  const connected = syncConfigured();
+  modalRoot.innerHTML = `
+  <div class="modal-backdrop">
+    <div class="modal narrow" role="dialog" aria-label="Sync settings">
+      <div class="modal-head">
+        <h2>Sync settings</h2>
+        <button class="modal-x" data-act="close" title="Close (Esc)">✕</button>
+      </div>
+      <div class="modal-body">
+        <section class="modal-section">
+          <p class="muted">Keeps your projects in a Google Sheet you own, so Traveler works on your phone and your other computers. The URL and secret below are stored on this device only, and are not included in exports. Setup steps are at the top of <strong>traveler-sync.gs</strong>.</p>
+          <div class="form-grid">
+            <label for="syncUrl">Web app URL</label>
+            <input id="syncUrl" type="url" inputmode="url" autocomplete="off" placeholder="https://script.google.com/macros/s/…/exec" value="${escapeAttr(syncCfg.url)}">
+            <label for="syncSecret">Secret</label>
+            <div class="inline-field">
+              <input id="syncSecret" type="text" autocomplete="off" spellcheck="false" placeholder="Same value as SECRET in the script" value="${escapeAttr(syncCfg.secret)}">
+              <button class="mini-btn" id="syncGen" type="button">Generate</button>
+            </div>
+          </div>
+          <div id="syncMsg" class="muted sync-msg"></div>
+          <div class="add-row">
+            <button class="modal-primary" id="syncConnect">${connected ? 'Save &amp; sync now' : 'Connect'}</button>
+            ${connected ? '<button class="mini-btn" id="syncDisconnect">Disconnect this device</button>' : ''}
+          </div>
+        </section>
+        ${connected ? `<section class="modal-section">
+          <h3>Status</h3>
+          <div class="muted">${sync.lastSyncAt ? 'Last synced ' + escapeHtml(new Date(sync.lastSyncAt).toLocaleString()) : 'Not synced yet'} · ${pendingCount()} change${pendingCount() === 1 ? '' : 's'} waiting to upload.</div>
+          <div class="muted" style="margin-top:8px">A running timer stays on the device where you started it. Your hours sync as soon as you stop it.</div>
+        </section>` : ''}
+      </div>
+    </div>
+  </div>`;
+
+  const msg = modalRoot.querySelector('#syncMsg');
+  const say = (text, bad) => { msg.textContent = text; msg.classList.toggle('bad', !!bad); };
+
+  modalRoot.querySelector('#syncGen').addEventListener('click', () => {
+    const bytes = new Uint8Array(24);
+    crypto.getRandomValues(bytes);
+    const secret = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+    modalRoot.querySelector('#syncSecret').value = secret;
+    const done = () => say('Secret generated. Paste the same value into SECRET at the top of the script, then deploy it.');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(secret).then(() => say('Secret generated and copied. Paste it into SECRET at the top of the script, then deploy it.'), done);
+    } else {
+      done();
+    }
+  });
+
+  modalRoot.querySelector('#syncConnect').addEventListener('click', async () => {
+    const url = modalRoot.querySelector('#syncUrl').value.trim();
+    const secret = modalRoot.querySelector('#syncSecret').value.trim();
+    if (!URL_PATTERN.test(url)) { say('That doesn\'t look like a Web app URL. It should start with https://script.google.com/macros/s/ and end in /exec.', true); return; }
+    if (secret.length < 12) { say('Use a longer secret (at least 12 characters). "Generate" makes a good one.', true); return; }
+    const previous = syncCfg;
+    syncCfg = { url, secret };
+    say('Checking the connection…');
+    try {
+      await callBackend({ secret, action: 'ping' });
+    } catch (e) {
+      syncCfg = previous;
+      say(e.message, true);
+      return;
+    }
+    saveSyncSettings();
+    // Start from scratch against this sheet: send everything we have, and pull everything it has.
+    sync.rev = 0;
+    markAllDirty();
+    persist();
+    say('Connected. Syncing…');
+    const result = await syncNow(true);
+    if (result) {
+      closeModal();
+      showToast(`Connected — sent ${result.pushed}, received ${result.pulled}`);
+    } else {
+      say(syncStatus.message || 'Connected, but the first sync did not finish. It will retry automatically.', true);
+    }
+  });
+
+  const disc = modalRoot.querySelector('#syncDisconnect');
+  if (disc) disc.addEventListener('click', () => {
+    if (!confirm('Disconnect this device from the Google Sheet? Your projects stay on this device and the sheet keeps its copy.')) return;
+    syncCfg = { url: '', secret: '' };
+    try { localStorage.removeItem(SYNC_CFG_KEY); } catch (e) { /* ignore */ }
+    syncStatus = { state: 'off', message: '' };
+    sync.rev = 0;
+    persist();
+    renderSyncButton();
+    closeModal();
+    showToast('Disconnected');
+  });
+}
+
+document.getElementById('syncBtn').addEventListener('click', () => {
+  if (syncConfigured()) syncNow(true); else openSyncSettings();
+});
+document.getElementById('syncSettingsBtn').addEventListener('click', openSyncSettings);
+
+// Stay current without being asked: when you come back to the tab, when the network returns, and every minute.
+setInterval(() => { if (document.visibilityState === 'visible') syncNow(); }, 60000);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' || pendingCount()) syncNow();
+});
+window.addEventListener('online', () => syncNow());
+
+loadData();
+</script>
+</body>
+</html>
